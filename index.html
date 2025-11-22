@@ -4,82 +4,90 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fake News Detector • Prototype</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="title">
-      <div class="logo">📰</div>
-      <span>Fake News Detector</span>
-    </div>
+  <!-- Twitter-style background layer -->
+  <div class="collage-bg">
+  <img src="images/card1.png">
+  <img src="images/card2.png">
+  <img src="images/card3.png">
+  <img src="images/card4.png">
+  ...
+</div>
 
-    <!-- INPUT / ANALYZE -->
-    <div class="panel card" style="margin-top:16px;">
-      <div class="muted">Catch the fake news before they catch you.</div>
-      <div class="card" style="padding-left:0; padding-right:0;">
-        <div class="tabs" role="tablist" aria-label="Input type">
-          <button id="tab-url" class="tab active" role="tab" aria-selected="true" onclick="setTab('url')">URL</button>
-          <button id="tab-text" class="tab" role="tab" aria-selected="false" onclick="setTab('text')">Paste Text</button>
+
+  <!-- Centers the fake-news card in the middle -->
+  <div class="app-frame">
+    <div class="fake-card">
+      <div class="container">
+
+        <!-- Title / header -->
+        <div class="title">
+          <div class="logo"></div>
+          <span>Fake News Detector</span>
         </div>
 
-        <div id="input-url" style="margin-top:10px;">
-          <label class="muted" for="url">Article URL</label>
-          <input id="url" type="text" placeholder="https://example.com/news/article" />
-        </div>
+        <!-- INPUT / ANALYZE -->
+        <div class="panel card" style="margin-top:16px;">
+          <div class="muted">Paste the article and we’ll analyze it.</div>
 
-        <div id="input-text" style="display:none; margin-top:10px;">
-          <label class="muted" for="text">Article text</label>
-          <textarea id="text" placeholder="Paste the article content here..."></textarea>
-        </div>
+          <div class="card" style="padding-left:0; padding-right:0;">
+            <label class="muted" for="text">Article text</label>
+            <textarea id="text" placeholder="Paste the article content here..."></textarea>
 
-        <div class="row" style="margin-top:10px; justify-content: space-between;">
-          <label class="toggle"><input id="academic" type="checkbox" /><span class="muted">Academic mode (stricter)</span></label>
-          <button class="btn" onclick="analyze()">Analyze</button>
-        </div>
+            <div class="row" style="margin-top:10px; justify-content: space-between;">
+              <label class="toggle">
+                <input id="academic" type="checkbox" />
+                <span class="muted">Academic mode (stricter)</span>
+              </label>
+              <button class="btn" onclick="analyze()">Analyze</button>
+            </div>
 
-        <div id="steps" class="stepper" aria-live="polite" style="display:none;"></div>
-      </div>
-
-      <div id="verdict" class="verdict" style="display:none;"></div>
-      <div id="explain" style="display:none; margin-top:6px; display:grid; gap:10px;"></div>
-
-      <div class="foot">
-        <button class="link" onclick="openDrawer()">Model compare</button>
-        <a class="link" href="#" onclick="exportJSON(); return false;">Export JSON</a>
-        <span class="hint">Tip: Hey guys I can change this but I thought maybe we could throw a tip in here</span>
-      </div>
-    </div>
-
-    <!-- DRAWER -->
-    <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Model compare">
-      <header>
-        <strong>Model compare</strong>
-        <button class="tab" onclick="closeDrawer()">Close</button>
-      </header>
-
-      <div class="content">
-        <div class="two">
-          <div class="panel card">
-            <div class="muted">LSTM (fast classifier)</div>
-            <div id="lstmCard" class="mono" style="font-size:13px; white-space: pre-wrap;"></div>
+            <div id="steps" class="stepper" aria-live="polite" style="display:none;"></div>
           </div>
 
-          <div class="panel card">
-            <div class="muted">LLM (explanation)</div>
-            <div id="llmCard" class="mono" style="font-size:13px; white-space: pre-wrap;"></div>
+          <div id="verdict" class="verdict" style="display:none;"></div>
+          <div id="explain" style="display:none; margin-top:6px; display:grid; gap:10px;"></div>
+
+          <div class="foot">
+            <button class="link" onclick="openDrawer()">Model compare</button>
+            <a class="link" href="#" onclick="exportJSON(); return false;">Export JSON</a>
           </div>
         </div>
 
-        <details>
-          <summary>Dataset limitations</summary>
-          <div class="muted" style="margin-top:6px;">
-            Text-only training can bias models toward stylistic patterns rather than real-world verification.
+        <!-- DRAWER: Model Compare -->
+        <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Model compare">
+          <header>
+            <strong>Model compare</strong>
+            <button class="tab" onclick="closeDrawer()">Close</button>
+          </header>
+          <div class="content">
+            <div class="two">
+              <div class="panel card">
+                <div class="muted">LSTM (fast classifier)</div>
+                <div id="lstmCard" class="mono" style="font-size:13px; white-space: pre-wrap;"></div>
+              </div>
+              <div class="panel card">
+                <div class="muted">LLM (explanation)</div>
+                <div id="llmCard" class="mono" style="font-size:13px; white-space: pre-wrap;"></div>
+              </div>
+            </div>
+            <details>
+              <summary>Dataset limitations</summary>
+              <div class="muted" style="margin-top:6px;">
+                Text-only training can bias models toward stylistic patterns
+                (e.g., sensational phrasing) rather than verifying real-world facts.
+                Treat results as guidance, not final truth.
+              </div>
+            </details>
           </div>
-        </details>
-      </div>
-    </aside>
-  </div>
+        </aside>
 
-  <script src="script.js"></script>
+      </div><!-- /.container -->
+    </div><!-- /.fake-card -->
+  </div><!-- /.app-frame -->
+
+  <script src="js/app.js"></script>
 </body>
 </html>
