@@ -1,7 +1,5 @@
 
 // app.js
-
-/*
 // Front-end logic for Fake News Detector prototype.
 // Note: currently uses mockResult() with hard-coded data.
 // In the final version, analyze() will call a backend API instead. 
@@ -271,4 +269,3 @@ function exportJSON() {
 // })
 //   .then(r => r.json())
 //   .then(renderResult);
-*/
