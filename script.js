@@ -18,11 +18,39 @@ function setTab(which) {
 
 let lastResult = null;
 
-// --- Main analyze simulation
-function analyze() {
+// API Configuration
+const API_BASE_URL = 'http://localhost:8000';
+
+// --- Main analyze function with real API call
+async function analyze() {
   const steps = document.getElementById('steps');
   const verdict = document.getElementById('verdict');
   const explain = document.getElementById('explain');
+
+  // Get input text
+  const isUrlMode = document.getElementById('tab-url').classList.contains('active');
+  let textToAnalyze = '';
+  
+  if (isUrlMode) {
+    const urlInput = document.getElementById('url').value.trim();
+    if (!urlInput) {
+      alert('Please enter a URL');
+      return;
+    }
+    // Note: URL scraping would require additional backend support
+    alert('URL scraping is not yet implemented. Please use "Paste Text" mode for now.');
+    return;
+  } else {
+    textToAnalyze = document.getElementById('text').value.trim();
+    if (!textToAnalyze) {
+      alert('Please paste some text to analyze');
+      return;
+    }
+    if (textToAnalyze.length < 20) {
+      alert('Please paste a longer text (at least 20 characters)');
+      return;
+    }
+  }
 
   steps.style.display = 'flex';
   verdict.style.display = 'none';
@@ -31,21 +59,45 @@ function analyze() {
   steps.innerHTML = '';
 
   const s1 = addStep('Tokenizing…');
-  const s2 = addStep('LSTM scoring…');
-  const s3 = addStep('LLM review…');
+  const s2 = addStep('Model scoring…');
+  const s3 = addStep('Analyzing content…');
 
-  setTimeout(() => markDone(s1), 500);
-  setTimeout(() => markActive(s2), 500);
-  setTimeout(() => {
-    markDone(s2);
-    markActive(s3);
-  }, 1200);
+  setTimeout(() => markDone(s1), 300);
+  setTimeout(() => markActive(s2), 300);
 
-  setTimeout(() => {
-    markDone(s3);
-    lastResult = mockResult();
-    renderResult(lastResult);
-  }, 2100);
+  try {
+    // Make API call
+    const response = await fetch(`${API_BASE_URL}/detect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: textToAnalyze })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(errorData.detail || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    setTimeout(() => {
+      markDone(s2);
+      markActive(s3);
+    }, 600);
+
+    setTimeout(() => {
+      markDone(s3);
+      lastResult = data;
+      renderResult(data);
+    }, 1200);
+
+  } catch (error) {
+    console.error('Analysis error:', error);
+    steps.innerHTML = '';
+    alert(`Analysis failed: ${error.message}\n\nMake sure the backend server is running at ${API_BASE_URL}`);
+  }
 }
 
 function addStep(label) {
@@ -149,87 +201,6 @@ function renderResult(data) {
   );
 }
 
-// --- Mock dataset for demo
-function mockResult() {
-  const presets = [
-    {
-      lstm: {
-        label: 'FAKE',
-        confidence: 0.86,
-        signals: [
-          { type: 'phrase', text: 'BREAKING', impact: 0.18 },
-          { type: 'style', text: 'ALL-CAPS headline', impact: 0.12 },
-          { type: 'phrase', text: 'shocking truth', impact: 0.09 },
-        ],
-      },
-      llm: {
-        ran: true,
-        label: 'UNCERTAIN',
-        rationale: [
-          'The article uses sensational language and lacks primary sources.',
-          'Quotes are unattributed; claims reference a single blog.',
-          'Author bio is missing and publication is opaque.',
-        ],
-        claims: [
-          '“Agency confirmed X on Friday.”',
-          '“Study with 50,000 participants found Y.”',
-          '“CEO admitted Z on live TV.”',
-        ],
-      },
-      consensus: 'disagree',
-    },
-
-    {
-      lstm: {
-        label: 'REAL',
-        confidence: 0.78,
-        signals: [
-          { type: 'style', text: 'neutral tone', impact: 0.11 },
-          { type: 'structure', text: 'attributed quotes', impact: 0.08 },
-        ],
-      },
-      llm: {
-        ran: true,
-        label: 'REAL',
-        rationale: [
-          'Multiple independent sources are cited and linked.',
-          'Contains direct quotes with names and roles.',
-          'Data source is a public report with publication date.',
-        ],
-        claims: ['“Report released on April 4, 2025.”'],
-      },
-      consensus: 'agree',
-    },
-
-    {
-      lstm: {
-        label: 'UNCERTAIN',
-        confidence: 0.55,
-        signals: [{ type: 'phrase', text: 'experts say', impact: 0.06 }],
-      },
-      llm: {
-        ran: true,
-        label: 'UNCERTAIN',
-        rationale: [
-          'Insufficient detail to verify; references are generic.',
-          'Key numbers are rounded with no links.',
-        ],
-        claims: ['“Experts estimate losses of $10B.”'],
-      },
-      consensus: 'agree',
-    },
-  ];
-
-  const pick = presets[Math.floor(Math.random() * presets.length)];
-
-  if (document.getElementById('academic').checked && pick.lstm.label === 'REAL') {
-    pick.lstm.confidence = Math.max(0.58, pick.lstm.confidence - 0.15);
-  }
-
-  return pick;
-}
-
-// Drawer open/close
 function openDrawer() {
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawer').setAttribute('aria-hidden', 'false');
