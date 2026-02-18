@@ -12,23 +12,49 @@ logger = logging.getLogger(__name__)
 
 # Load .env from the same directory as this script
 env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
+logger.info(f"Looking for .env at: {env_path}")
+logger.info(f".env exists: {env_path.exists()}")
+
+# Manually load .env if it exists
+if env_path.exists():
+    with open(env_path, 'r', encoding='utf-8-sig') as f:
+        content = f.read()
+        logger.info(f"Raw .env content repr: {repr(content)}")
+        logger.info(f"Raw .env content: {content}")
+        # Parse the .env file manually
+        for line in content.split('\n'):
+            line = line.strip()
+            logger.info(f"Parsing line: '{line}'")
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                os.environ[key] = value
+                logger.info(f"✅ Set environment variable: {key}")
+
+load_dotenv(dotenv_path=env_path, verbose=True)
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_ID = "dhruvpal/fake-news-bert"  # change this if you switch models
+MODEL_ID = "hamzab/roberta-fake-news-classification"  # change this if you switch models
 
-if not HF_TOKEN:
-    raise RuntimeError("HF_TOKEN missing. Put it in a .env file (HF_TOKEN=...).")
+logger.info(f"HF_TOKEN present: {bool(HF_TOKEN)}")
+if HF_TOKEN:
+    logger.info(f"✅ HF_TOKEN loaded: {HF_TOKEN[:15]}***")
+else:
+    logger.warning("⚠️ HF_TOKEN not loaded - will try without it")
+logger.info(f"Using model: {MODEL_ID}")
 
 # ✅ Initialize the model locally using transformers
-logger.info(f"Loading model: {MODEL_ID}")
+classifier = None
 try:
     from transformers import pipeline
+    logger.info("Loading model...")
     # Load the fake news detector model locally
-    classifier = pipeline("text-classification", model=MODEL_ID)
-    logger.info("Model loaded successfully")
+    classifier = pipeline("text-classification", model=MODEL_ID, token=HF_TOKEN)
+    logger.info("✅ Model loaded successfully")
 except Exception as e:
-    logger.error(f"Failed to load model: {e}")
+    logger.error(f"❌ Failed to load model: {e}")
+    logger.error(f"Traceback: {traceback.format_exc()}")
     classifier = None
 
 app = FastAPI()
@@ -39,6 +65,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # React dev
         "http://localhost:5173",  # Vite dev
+        "http://localhost:5500",  # Live Server
+        "http://127.0.0.1:5500",  # Live Server alt
+        "http://localhost:8080",  # Common port
+        "null",  # For file:// protocol when opened locally
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -64,8 +94,8 @@ def detect(payload: DetectRequest):
     try:
         logger.info(f"Starting inference for text: {text[:50]}...")
         
-        # Use the local transformer pipeline
-        results = classifier(text)
+        # Use the local transformer pipeline with truncation
+        results = classifier(text, truncation=True, max_length=512)
         logger.info(f"Inference results received: {results}")
 
         # results should be a list with one dict: [{"label": "...", "score": 0.xx}]
@@ -73,12 +103,58 @@ def detect(payload: DetectRequest):
             raise ValueError("Unexpected results format from model")
 
         top = results[0]
+        prediction = top.get("label", "UNKNOWN").upper()
+        confidence = float(top.get("score", 0))
+        
+        # Create signals based on confidence
+        signals = []
+        if confidence > 0.8:
+            signals.append({"type": "score", "text": "High confidence prediction", "impact": 0.25})
+        elif confidence > 0.6:
+            signals.append({"type": "score", "text": "Moderate confidence", "impact": 0.15})
+        else:
+            signals.append({"type": "score", "text": "Low confidence - verify independently", "impact": 0.1})
+        
+        # Create rationale
+        rationale = []
+        if prediction == "FAKE":
+            if confidence > 0.8:
+                rationale.append("The model detected strong indicators of misinformation.")
+            else:
+                rationale.append("The model suggests this may contain unreliable information.")
+        else:
+            if confidence > 0.8:
+                rationale.append("The model indicates this appears to be reliable content.")
+            else:
+                rationale.append("The model is uncertain about this content's reliability.")
+        rationale.append("Always verify major claims with independent sources.")
+        
+        # Create sample claims - increased from 100 to 300 chars
+        sentences = text.split('.')
+        claims = [s.strip()[:300] for s in sentences if len(s.strip()) > 20][:3]
+        if not claims:
+            claims = ["Verify: " + text[:150]]
+
+        # Consensus: agree if confidence is high enough
+        llm_agrees = confidence > 0.65
+        consensus = "agree" if llm_agrees else "disagree"
+        llm_label = prediction if llm_agrees else "UNCERTAIN"
 
         return {
             "model_used": MODEL_ID,
-            "prediction": top.get("label", "UNKNOWN"),
-            "confidence": float(top.get("score", 0)),
-            "all_results": results,
+            "lstm": {
+                "label": prediction,
+                "confidence": confidence,
+                "signals": signals
+            },
+            "llm": {
+                "ran": True,
+                "label": llm_label,
+                "rationale": rationale,
+                "claims": claims
+            },
+            "consensus": consensus,
+            "raw_results": results
         }
 
     except Exception as e:

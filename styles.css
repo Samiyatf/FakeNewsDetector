@@ -175,6 +175,17 @@ details {
 details + details { margin-top:10px; }
 summary { cursor:pointer; color:#cfe0ff; font-weight:700; }
 
+/* Ensure list items in details wrap text properly */
+details ul { margin: 8px 0 0 16px; padding: 0; }
+details li { 
+  color: #c9d2ec;
+  margin: 6px 0;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
 .drawer {
   position: fixed;
   inset: auto 0 0 auto;
