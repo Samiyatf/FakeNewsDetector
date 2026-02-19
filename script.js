@@ -66,8 +66,11 @@ async function analyze() {
   setTimeout(() => markActive(s2), 300);
 
   try {
+    const academicMode = document.getElementById('academic').checked;
+    const endpoint = academicMode ? '/detect-academic' : '/detect';
+
     // Make API call
-    const response = await fetch(`${API_BASE_URL}/detect`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,6 +129,83 @@ function renderResult(data) {
 
   verdict.style.display = 'flex';
   explain.style.display = 'grid';
+
+  const isAcademic = data && data.mode === 'academic';
+
+  if (isAcademic) {
+    const labelClass = data.prediction ? data.prediction.toLowerCase() : 'uncertain';
+    const badgeText = data.prediction || 'UNKNOWN';
+    const confidence = Number(data.confidence || 0);
+
+    verdict.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="badge ${labelClass}">● ${badgeText}</span>
+        <span class="muted">Mode: academic</span>
+      </div>
+      <div style="flex:1; max-width: 420px;">
+        <div class="bar"><i style="width:${Math.round(confidence * 100)}%"></i></div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">
+          Confidence: ${(confidence * 100).toFixed(1)}%
+        </div>
+      </div>
+    `;
+
+    const claimsList = (data.claims || []).map((c) => `<li>${c}</li>`).join('');
+    const limitationsList = (data.limitations || [])
+      .map((l) => `<li>${l}</li>`)
+      .join('');
+    const evidenceBlocks = (data.evidence_prompts || [])
+      .map(
+        (item) => `
+          <div style="margin-top:8px;">
+            <div class="muted" style="margin-bottom:6px;">${item.claim}</div>
+            <ul class="muted">
+              ${(item.questions || []).map((q) => `<li>${q}</li>`).join('')}
+            </ul>
+          </div>
+        `
+      )
+      .join('');
+
+    explain.innerHTML = `
+      <details open>
+        <summary>Claims to verify</summary>
+        <ul style="margin-top:8px;">${claimsList}</ul>
+      </details>
+
+      <details>
+        <summary>Evidence prompts</summary>
+        ${evidenceBlocks || '<div class="muted" style="margin-top:8px;">No prompts available.</div>'}
+      </details>
+
+      <details>
+        <summary>Limitations</summary>
+        <ul class="muted" style="margin-top:8px;">${limitationsList}</ul>
+      </details>
+    `;
+
+    document.getElementById('lstmCard').textContent = JSON.stringify(
+      {
+        mode: data.mode,
+        prediction: data.prediction,
+        confidence: data.confidence,
+        chunk_scores: data.chunk_scores,
+      },
+      null,
+      2
+    );
+
+    document.getElementById('llmCard').textContent = JSON.stringify(
+      {
+        claims: data.claims,
+        evidence_prompts: data.evidence_prompts,
+        limitations: data.limitations,
+      },
+      null,
+      2
+    );
+    return;
+  }
 
   const labelClass =
     data.consensus === 'disagree'
