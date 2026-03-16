@@ -133,8 +133,13 @@ function renderResult(data) {
   const isAcademic = data && data.mode === 'academic';
 
   if (isAcademic) {
-    const labelClass = data.prediction ? data.prediction.toLowerCase() : 'uncertain';
-    const badgeText = data.prediction || 'UNKNOWN';
+    const labelClass =
+      data.consensus === 'Not credible'
+        ? 'fake'
+        : data.consensus === 'Credible'
+        ? 'real'
+        : 'uncertain';
+    const badgeText = data.consensus || data.prediction || 'Unverifiable / insufficient evidence';
     const confidence = Number(data.confidence || 0);
 
     verdict.innerHTML = `
@@ -208,14 +213,13 @@ function renderResult(data) {
   }
 
   const labelClass =
-    data.consensus === 'disagree'
-      ? 'uncertain'
-      : data.lstm.label.toLowerCase();
+    data.consensus === 'Not credible'
+      ? 'fake'
+      : data.consensus === 'Credible'
+      ? 'real'
+      : 'uncertain';
 
-  const badgeText =
-    data.consensus === 'disagree'
-      ? 'UNCERTAIN (disagree)'
-      : data.lstm.label;
+  const badgeText = data.consensus || 'Unverifiable / insufficient evidence';
 
   verdict.innerHTML = `
     <div style="display:flex; align-items:center; gap:12px;">

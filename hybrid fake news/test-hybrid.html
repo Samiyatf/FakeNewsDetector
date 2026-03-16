@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hybrid API Test</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="title">
+      <div class="logo">🧪</div>
+      <span>Hybrid API Tester (Port 8002)</span>
+    </div>
+
+    <div class="panel card" style="margin-top:16px;">
+      <div class="row" style="justify-content: space-between; margin-bottom: 10px;">
+        <label class="toggle"><input id="academic" type="checkbox" /><span class="muted">Academic mode</span></label>
+        <button class="btn" id="analyzeBtn">Analyze</button>
+      </div>
+
+      <label class="muted" for="text">Article text</label>
+      <textarea id="text" placeholder="Paste article text here..."></textarea>
+
+      <div id="status" class="muted" style="margin-top:10px;"></div>
+      <div id="verdict" class="verdict" style="display:none;"></div>
+
+      <details style="margin-top:12px;" open>
+        <summary>Raw API Response</summary>
+        <pre id="raw" class="mono" style="white-space: pre-wrap; font-size: 13px;"></pre>
+      </details>
+    </div>
+  </div>
+
+  <script src="./script-hybrid.js"></script>
+</body>
+</html>

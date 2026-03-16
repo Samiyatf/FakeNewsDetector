@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Comparison Dashboard</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    .compare-table th, .compare-table td { border: 1px solid #263056; padding: 10px; text-align: left; }
+    .compare-table th { background: #0f1423; color: #cfe0ff; }
+    .bar-wrap { width: 220px; }
+    .bar-mini { height: 8px; border-radius: 999px; background: #11172a; border:1px solid #1c2540; overflow: hidden; }
+    .bar-mini > i { height: 100%; display:block; background: linear-gradient(90deg, #6aa7ff, #8f7aff); }
+    .status-ok { color: #9fe0bf; }
+    .status-err { color: #ffc2c2; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">
+      <div class="logo">📊</div>
+      <span>Compare 3 APIs (Paste Once)</span>
+    </div>
+
+    <div class="panel card" style="margin-top:16px;">
+      <div class="row" style="justify-content: space-between; margin-bottom: 10px;">
+        <label class="toggle"><input id="academic" type="checkbox" /><span class="muted">Academic mode</span></label>
+        <button class="btn" id="analyzeBtn">Run Comparison</button>
+      </div>
+
+      <label class="muted" for="text">Article text</label>
+      <textarea id="text" placeholder="Paste article text here..."></textarea>
+
+      <div id="status" class="muted" style="margin-top:10px;"></div>
+
+      <table class="compare-table" id="resultsTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>Backend</th>
+            <th>Label</th>
+            <th>Confidence</th>
+            <th>Consensus</th>
+            <th>Source</th>
+            <th>Bar</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+
+      <details style="margin-top:12px;">
+        <summary>Raw Responses</summary>
+        <pre id="raw" class="mono" style="white-space: pre-wrap; font-size: 13px;"></pre>
+      </details>
+    </div>
+  </div>
+
+  <script src="./compare-web.js"></script>
+</body>
+</html>

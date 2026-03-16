@@ -51,7 +51,13 @@ try:
     from transformers import pipeline
     logger.info("Loading model...")
     # Load the fake news detector model locally
-    classifier = pipeline("text-classification", model=MODEL_ID, token=HF_TOKEN)
+    classifier = pipeline(
+        "text-classification",
+        model=MODEL_ID,
+        token=HF_TOKEN,
+        framework="pt",
+        device=-1,
+    )
     logger.info("✅ Model loaded successfully")
 except Exception as e:
     logger.error(f"❌ Failed to load model: {e}")
@@ -71,6 +77,7 @@ app.add_middleware(
         "http://localhost:8080",  # Common port
         "null",  # For file:// protocol when opened locally
     ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,6 +85,12 @@ app.add_middleware(
 
 class DetectRequest(BaseModel):
     text: str
+
+
+def _consensus_from_prediction(prediction: str, confidence: float) -> tuple[str, str]:
+    if confidence >= 0.82:
+        return ("Not credible", prediction) if prediction == "FAKE" else ("Credible", prediction)
+    return ("Unverifiable / insufficient evidence", "UNCERTAIN")
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -189,6 +202,7 @@ def _academic_response(text: str) -> dict:
     results = _aggregate_chunks(chunks)
     prediction = results["prediction"]
     confidence = results["confidence"]
+    consensus, llm_label = _consensus_from_prediction(prediction, confidence)
 
     claims = _build_claims(text)
     evidence_prompts = _build_evidence_prompts(claims)
@@ -218,17 +232,25 @@ def _academic_response(text: str) -> dict:
         "model_used": MODEL_ID,
         "prediction": prediction,
         "confidence": confidence,
+        "consensus": consensus,
         "claims": claims,
         "evidence_prompts": evidence_prompts,
         "limitations": limitations,
         "methodology": methodology,
+        "llm": {
+            "label": llm_label
+        },
         "raw_results": results["raw_results"],
         "chunk_scores": results["avg_scores"],
     }
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL_ID}
+    return {
+        "status": "ok" if classifier is not None else "degraded",
+        "model": MODEL_ID,
+        "model_loaded": classifier is not None,
+    }
 
 @app.post("/detect")
 def detect(payload: DetectRequest):
@@ -309,10 +331,8 @@ def detect(payload: DetectRequest):
         # Create sample claims - increased from 100 to 300 chars
         claims = _build_claims(text, limit=3)
 
-        # Consensus: agree if confidence is high enough
-        llm_agrees = confidence > 0.65
-        consensus = "agree" if llm_agrees else "disagree"
-        llm_label = prediction if llm_agrees else "UNCERTAIN"
+        # Consensus labels with conservative thresholds to reduce false positives
+        consensus, llm_label = _consensus_from_prediction(prediction, confidence)
 
         return {
             "model_used": MODEL_ID,

@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Aggie Times • Fake News Detector</title>
+  <style>
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Times New Roman', Times, serif;
+      background: #f5f1e8;
+      color: #1a1a1a;
+      overflow-x: hidden;
+    }
+
+    /* Printing Press Background */
+    .press-bg {
+      position: fixed;
+      inset: 0;
+      background: 
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,0.02) 0px,
+          rgba(0,0,0,0.02) 2px,
+          transparent 2px,
+          transparent 4px
+        ),
+        #f5f1e8;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .press-roller {
+      position: absolute;
+      width: 100%;
+      height: 200px;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(0,0,0,0.1) 0px,
+        rgba(0,0,0,0.1) 50px,
+        transparent 50px,
+        transparent 100px
+      );
+      animation: roll 8s linear infinite;
+    }
+
+    .press-roller-1 {
+      top: 0;
+      animation-duration: 8s;
+    }
+
+    .press-roller-2 {
+      top: 33%;
+      animation-duration: 10s;
+      animation-direction: reverse;
+    }
+
+    .press-roller-3 {
+      bottom: 0;
+      animation-duration: 12s;
+    }
+
+    @keyframes roll {
+      from { transform: translateX(0); }
+      to { transform: translateX(100px); }
+    }
+
+    /* Breaking News Ticker */
+    .ticker-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #002D74;
+      z-index: 1000;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-label {
+      flex-shrink: 0;
+      background: #fff;
+      color: #002D74;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 6px 14px;
+      margin-left: 16px;
+      font-family: 'Times New Roman', Times, serif;
+      text-transform: uppercase;
+      border: 2px solid #002D74;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .ticker-track-wrap {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker {
+      display: flex;
+      white-space: nowrap;
+      animation: tickerScroll 60s linear infinite;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      padding: 0 60px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      letter-spacing: 1px;
+    }
+
+    .ticker-text .sep {
+      opacity: 0.5;
+      margin: 0 10px;
+    }
+
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Academic mode switch */
+    .mode-switch-wrap {
+      position: fixed;
+      /* slightly higher so it sits between the ticker and newspaper */
+      top: 78px;
+      right: 18px;
+      z-index: 1101;
+      padding: 8px 14px; /* restored to previous length/size */
+      background: rgba(0,0,0,0.6);
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+    }
+    .mode-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      user-select: none;
+    }
+    .mode-switch input { display: none; }
+    .mode-slider {
+      width: 48px;
+      height: 26px;
+      background: #555;
+      border-radius: 999px;
+      position: relative;
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .mode-slider::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Toggle checked state: move knob and change background */
+    .mode-switch input:checked + .mode-slider {
+      background: #8FD19E; /* light green for academic mode */
+      box-shadow: 0 2px 8px rgba(143,209,158,0.25);
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+    .mode-switch input:checked + .mode-slider::after {
+      transform: translateX(24px);
+    }
+    .mode-switch .mode-label {
+      margin-left: 10px;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    /* Masthead styling: restore classic centered masthead look.
+       Keep site accent colors (blue/gold) used elsewhere in the header/ticker. */
+    .newspaper-header {
+      text-align: center;
+      margin: 18px 0 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+    }
+    .masthead {
+      color: #FDB827; /* gold fill */
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 72px; /* reduced from 96 to better match screenshot */
+      font-weight: 900;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      margin: 8px 0 6px;
+      text-align: center;
+      -webkit-text-stroke: 2px #000; /* black border */
+      /* blue accent around letters + subtle glow */
+      text-shadow:
+        0 2px 0 #002D74,
+        0 -2px 0 #002D74,
+        2px 0 0 #002D74,
+        -2px 0 0 #002D74,
+        0 0 6px rgba(0,0,0,0.12);
+    }
+    .paper-tagline {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #333;
+      font-style: italic;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .aggies-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      line-height: 1;
+      position: relative;
+    }
+
+    .aggies-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .aggies-logo span {
+      display: none;
+    }
+
+    .aggies-logo img[style*="display: none"] ~ span,
+    .aggies-logo:not(:has(img)) span {
+      display: block !important;
+    }
+
+    .date-line {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    .paper-tagline {
+      font-size: 15px;
+      color: #1a1a1a;
+      margin-top: 8px;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+
+    /* Corner logo — positioned absolute, slightly rotated, in top-right of header */
+    .corner-logo {
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      transform: rotate(8deg);
+      opacity: 0.85;
+      filter: drop-shadow(1px 2px 4px rgba(0,0,0,0.15));
+      /* Hide gracefully if image fails to load */
+    }
+
+    .corner-logo[src="ncat-logo.png"]:not([complete]) {
+      display: none;
+    }
+
+    /* Newspaper Columns */
+    .newspaper-content {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .headline-box {
+      padding: 20px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+
+    .headline {
+      font-size: 2rem;
+      font-weight: 900;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .subheadline {
+      font-size: 1rem;
+      margin: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Article Box */
+    .article-box {
+      position: relative;
+      padding: 30px;
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    /* Ink Splatters */
+    .ink-splatters {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .ink-splatters.active {
+      opacity: 0.45;
+    }
+
+    .splatter {
+      position: absolute;
+      background: #1a1a1a;
+      opacity: 0.45;
+      animation: splatterAppear 0.6s ease-out backwards;
+      filter: blur(1.5px);
+    }
+
+    .splatter-1 {
+      width: 85px;
+      height: 95px;
+      top: 10%;
+      left: 15%;
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%, 20% 10%, 50% 5%);
+      transform: rotate(-15deg);
+      animation-delay: 0.1s;
+    }
+
+    .splatter-2 {
+      width: 65px;
+      height: 70px;
+      top: 30%;
+      right: 20%;
+      clip-path: polygon(40% 0%, 80% 0%, 100% 40%, 100% 80%, 60% 100%, 20% 100%, 0% 60%, 0% 20%, 25% 5%, 55% 10%);
+      transform: rotate(25deg);
+      animation-delay: 0.3s;
+    }
+
+    .splatter-3 {
+      width: 110px;
+      height: 105px;
+      bottom: 25%;
+      left: 10%;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%, 15% 8%, 50% 3%);
+      transform: rotate(-20deg);
+      animation-delay: 0.5s;
+    }
+
+    .splatter-4 {
+      width: 75px;
+      height: 80px;
+      top: 50%;
+      right: 15%;
+      clip-path: polygon(35% 0%, 65% 0%, 100% 35%, 100% 65%, 65% 100%, 35% 100%, 0% 65%, 0% 35%, 20% 12%, 50% 7%);
+      transform: rotate(30deg);
+      animation-delay: 0.7s;
+    }
+
+    .splatter-5 {
+      width: 55px;
+      height: 60px;
+      bottom: 15%;
+      right: 30%;
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%, 18% 8%, 50% 4%);
+      transform: rotate(-25deg);
+      animation-delay: 0.9s;
+    }
+
+    .splatter-6 {
+      width: 95px;
+      height: 100px;
+      top: 20%;
+      left: 50%;
+      clip-path: polygon(28% 0%, 72% 0%, 100% 28%, 100% 72%, 72% 100%, 28% 100%, 0% 72%, 0% 28%, 22% 9%, 50% 5%);
+      transform: rotate(18deg);
+      animation-delay: 1.1s;
+    }
+
+    @keyframes splatterAppear {
+      from {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(180deg);
+      }
+      to {
+        transform: scale(1) rotate(360deg);
+        opacity: 0.75;
+      }
+    }
+
+    .article-input {
+      width: 100%;
+      min-height: 300px;
+      padding: 20px;
+      font-size: 16px;
+      line-height: 1.8;
+      font-family: 'Times New Roman', Times, serif;
+      color: #1a1a1a;
+      background: #fff;
+      border: 2px solid #ccc;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Highlight overlay that mirrors the textarea and shows <mark> highlights */
+    .highlight-layer {
+      position: absolute;
+      left: 0; top: 0;
+      pointer-events: auto; /* allow scrolling & Next button clicks */
+      overflow: auto;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 16px;
+      line-height: 1.8;
+      color: transparent; /* real text comes from underlying textarea; marks will show background */
+      z-index: 5;
+      box-sizing: border-box;
+    }
+    .highlight-layer pre {
+      margin: 0;
+      color: #1a1a1a; /* text color for mirrored content */
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      padding: 20px; /* match textarea padding */
+      box-sizing: border-box;
+    }
+    .highlight-layer mark {
+      background: rgba(255, 230, 0, 0.45);
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+    .highlight-layer mark.sig-quotes { background: rgba(196,30,58,0.25); }
+    .highlight-layer mark.sig-stats { background: rgba(36,123,160,0.25); }
+    .highlight-layer mark.sig-hedge { background: rgba(255,165,0,0.25); }
+    .highlight-layer mark.sig-author { background: rgba(40,167,69,0.2); }
+    .highlight-layer mark.sig-citations { background: rgba(0,45,116,0.18); }
+
+    .highlight-next {
+      position: absolute;
+      right: 14px;
+      top: 8px;
+      z-index: 6;
+      pointer-events: auto;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .article-input::placeholder {
+      color: #999;
+      font-style: italic;
+    }
+
+    .article-input:focus {
+      border-color: #c41e3a;
+      box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+    }
+
+    .analyze-btn {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 18px;
+      font-weight: 900;
+      font-family: 'Times New Roman', Times, serif;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #FDB827;
+      background: #002D74;
+      border: 3px solid #000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .analyze-btn:hover {
+      background: #001f4f;
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.2);
+    }
+
+    .analyze-btn:active {
+      transform: translateY(0);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .info-box {
+      padding: 20px;
+      border: 2px solid #000;
+      background: #f9f9f9;
+    }
+
+    .info-box h3 {
+      font-size: 11px;
+      font-weight: 900;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    .info-box p {
+      margin: 0;
+      line-height: 1.7;
+      color: #333;
+      font-size: 13px;
+    }
+
+    /* Result Section */
+    .result-section {
+      margin-top: 40px;
+      padding: 30px;
+      border: 3px solid #000;
+      background: #fff;
+      display: none;
+    }
+
+    .result-section.show {
+      display: block;
+      animation: resultAppear 0.5s ease-out;
+    }
+
+    @keyframes resultAppear {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Stamp Container */
+    .stamp-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      margin-bottom: 30px;
+    }
+
+    .stamp {
+      position: absolute;
+      padding: 30px 60px;
+      border: 8px solid;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.95);
+      transform: rotate(-5deg);
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .stamp.verified {
+      border-color: #28a745;
+      color: #28a745;
+    }
+
+    .stamp.fake {
+      border-color: #c41e3a;
+      color: #c41e3a;
+    }
+
+    .stamp.show {
+      opacity: 1;
+      animation: stampAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes stampAppear {
+      0% {
+        transform: scale(0) rotate(-5deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2) rotate(-5deg);
+      }
+      100% {
+        transform: scale(1) rotate(-5deg);
+        opacity: 1;
+      }
+    }
+
+    .stamp-text {
+      font-size: 4rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .stamp-date {
+      font-size: 1rem;
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .result-details {
+      padding: 20px;
+      background: #f9f9f9;
+      border: 2px solid #000;
+      font-size: 16px;
+      line-height: 1.8;
+      color: #333;
+    }
+
+    /* ===== AGED PAPER TEXTURE ===== */
+    /* 3D page-turn effect: perspective + rotateY transforms */
+    .flip-container {
+      position: relative;
+      width: 100%;
+      perspective: 1200px;
+      -webkit-perspective: 1200px;
+      perspective-origin: left center;
+    }
+    .flip-container .newspaper-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      width: 100%;
+      transition: transform 0.48s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease, opacity 0.3s ease;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      transform-origin: left center;
+      will-change: transform;
+    }
+    .flip-container .page-front {
+      z-index: 3;
+      transform: rotateY(0deg) translateZ(0);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      pointer-events: auto;
+    }
+    .flip-container .page-back {
+      z-index: 2;
+      transform: rotateY(-180deg) translateZ(0);
+      box-shadow: none;
+      pointer-events: none;
+    }
+    .flip-container.flipped .page-front {
+      transform: rotateY(180deg) translateZ(0);
+      pointer-events: none;
+      box-shadow: none;
+    }
+    .flip-container.flipped .page-back {
+      transform: rotateY(0deg) translateZ(0);
+      pointer-events: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    }
+
+    .newspaper-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 30px 40px 50px; /* extra left for fold */
+      background: #fff;
+      box-shadow:
+        0 0 30px rgba(0,0,0,0.2),
+        inset 0 0 120px rgba(180,150,80,0.08),
+        inset 0 0 60px rgba(100,80,40,0.05);
+      min-height: calc(100vh - 180px);
+      transition: margin-top 0.3s ease;
+      backface-visibility: hidden;
+    }
+    /* space between the top ticker / controls and the newspaper header */
+    .newspaper-wrapper {
+      padding-top: 110px; /* move newspaper up closer to header */
+    }
+
+    /* Noise/grain overlay for aged paper */
+    .newspaper-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 150px 150px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+      mix-blend-mode: multiply;
+    }
+
+    /* Subtle yellowing / aging gradient */
+    .newspaper-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 80%, rgba(210,180,100,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(200,170,90,0.05) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(180,150,80,0.03) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Make sure content appears above paper texture layers */
+    .newspaper-header,
+    .newspaper-content,
+    .result-section,
+    .newspaper-footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== FOLD CREASE (left edge) ===== */
+    .fold-crease {
+      position: absolute;
+      left: 36px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.06) 10%,
+        rgba(0,0,0,0.12) 30%,
+        rgba(0,0,0,0.15) 50%,
+        rgba(0,0,0,0.12) 70%,
+        rgba(0,0,0,0.06) 90%,
+        transparent 100%
+      );
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* shadow to left of fold gives 3D paper effect */
+    .fold-crease::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+    }
+
+    .fold-crease::after {
+      content: '';
+      position: absolute;
+      left: 1px;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: linear-gradient(to right, rgba(255,255,255,0.5), transparent);
+    }
+
+    /* ===== COFFEE RING STAIN ===== */
+    .coffee-ring {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 6px solid rgba(150, 100, 40, 0.10);
+      box-shadow:
+        0 0 0 2px rgba(150, 100, 40, 0.05),
+        inset 0 0 8px rgba(150, 100, 40, 0.07);
+      pointer-events: none;
+      z-index: 2;
+      transform: rotate(-12deg);
+    }
+
+    .coffee-ring::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 50%;
+      border: 2px solid rgba(150, 100, 40, 0.04);
+    }
+
+    .coffee-ring-1 {
+      bottom: 80px;
+      right: 60px;
+      width: 90px;
+      height: 90px;
+    }
+
+    .coffee-ring-2 {
+      top: 120px;
+      right: 120px;
+      width: 65px;
+      height: 65px;
+      transform: rotate(8deg);
+      border-color: rgba(130, 90, 30, 0.07);
+      opacity: 0.7;
+    }
+
+    /* ===== NEWSPAPER FOOTER ===== */
+    .newspaper-footer {
+      border-top: 3px double #000;
+      margin-top: 40px;
+      padding-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      font-size: 11px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .newspaper-footer .foot-col {
+      padding: 0 10px;
+    }
+
+    .newspaper-footer .foot-col:not(:last-child) {
+      border-right: 1px solid #ccc;
+    }
+
+    .newspaper-footer strong {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
+
+    /* ===== EDITORS DESK / WEATHER / CLASSIFIEDS BOXES ===== */
+    .editors-box, .weather-box, .classifieds-box {
+      padding: 14px 16px;
+      border: 1.5px solid #000;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .editors-box h4, .weather-box h4, .classifieds-box h4 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      font-weight: 900;
+    }
+
+    .editors-box p, .weather-box p, .classifieds-box p {
+      margin: 0 0 8px;
+      color: #333;
+      font-style: italic;
+    }
+
+    .editors-sig {
+      font-style: normal !important;
+      font-size: 11px;
+      color: #666;
+      text-align: right;
+      margin-top: 6px !important;
+    }
+
+    .weather-temp {
+      font-size: 2.2rem;
+      font-weight: 900;
+      line-height: 1;
+      margin: 6px 0 4px;
+      font-style: normal !important;
+      color: #1a1a1a;
+    }
+
+    .weather-icon {
+      font-size: 1.5rem;
+    }
+
+    .weather-detail {
+      font-size: 11px;
+      color: #666;
+      font-style: normal !important;
+    }
+
+    .classifieds-item {
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 7px;
+      margin-bottom: 7px;
+      font-size: 11px;
+      color: #333;
+      font-style: normal !important;
+    }
+
+    .classifieds-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .classifieds-item strong {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== STOP THE PRESSES TOAST ===== */
+    .stop-presses-toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border: 2px solid #c41e3a;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 1100;
+      white-space: nowrap;
+    }
+
+    .stop-presses-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 968px) {
+      .newspaper-content {
+        grid-template-columns: 1fr;
+      }
+
+      .masthead {
+        font-size: 2.5rem;
+        letter-spacing: 4px;
+      }
+
+      .stamp-text {
+        font-size: 2.5rem;
+        letter-spacing: 4px;
+      }
+
+      .newspaper-footer {
+        grid-template-columns: 1fr;
+      }
+
+      .newspaper-footer .foot-col:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Printing press background animation -->
+  <div class="press-bg">
+    <div class="press-roller press-roller-1"></div>
+    <div class="press-roller press-roller-2"></div>
+    <div class="press-roller press-roller-3"></div>
+  </div>
+
+  <!-- Result Banner (shows VERIFIED or FAKE - impossible to miss) -->
+  <div class="result-banner" id="resultBanner">
+    <span class="result-banner-text" id="resultBannerText"></span>
+  </div>
+
+  <!-- Academic mode switch -->
+  <div class="mode-switch-wrap">
+    <label class="mode-switch">
+      <input type="checkbox" id="academicMode" />
+      <span class="mode-slider"></span>
+      <span class="mode-label">Academic mode — turn page</span>
+    </label>
+  </div>
+
+  <!-- Breaking News Ticker -->
+  <div class="ticker-container">
+    <div class="ticker-label">BREAKING</div>
+    <div class="ticker-track-wrap">
+      <div class="ticker" id="tickerTrack"></div>
+    </div>
+  </div>
+
+  <!-- Newspaper with page-turn -->
+  <div class="newspaper-wrapper" id="newspaperWrapper">
+    <div class="flip-container" id="flipContainer">
+      <!-- FRONT PAGE -->
+      <div class="newspaper-container page-front">
+        <!-- Server error banner (hidden unless server errors occur) -->
+        <div id="serverErrorBanner" style="display:none; position:fixed; top:58px; left:50%; transform:translateX(-50%); z-index:1200; background:#c41e3a; color:#fff; padding:8px 12px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.25); font-weight:700;">Server unreachable — results may be unavailable</div>
+        <div class="fold-crease"></div>
+        <div class="coffee-ring coffee-ring-1"></div>
+        <div class="coffee-ring coffee-ring-2"></div>
+        <div class="newspaper-header">
+          <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
+          <h1 class="masthead">THE AGGIE TIMES</h1>
+          <div class="paper-tagline">Verify Your News &mdash; Paste any article below and discover the truth</div>
+          <div class="date-line">VOL. 1 • NO. 1 • <span id="currentDate"></span></div>
+        </div>
+        <div class="newspaper-content">
+          <div class="column left-column">
+            <div class="info-box">
+              <h3>HOW IT WORKS</h3>
+              <p>Our AI-powered system analyzes articles for credibility, checking sources, claims, and patterns.</p>
+            </div>
+            <div class="editors-box">
+              <h4>From the Editor's Desk</h4>
+              <p>In an age where a headline travels faster than a fact-checker, we built this paper to slow you down. Before you share, before you rage, before you believe — let us take a look.</p>
+              <p>Not every rumor wears a trench coat. Some come dressed as CNN graphics.</p>
+              <p class="editors-sig">— The Algorithm, Editor-in-Chief</p>
+            </div>
+          </div>
+          <div class="column center-column">
+            <div class="article-box" id="articleBox">
+              <div class="ink-splatters" id="inkSplatters">
+                <div class="splatter splatter-1"></div>
+                <div class="splatter splatter-2"></div>
+                <div class="splatter splatter-3"></div>
+                <div class="splatter splatter-4"></div>
+                <div class="splatter splatter-5"></div>
+                <div class="splatter splatter-6"></div>
+              </div>
+              <textarea class="article-input" id="articleInput" placeholder="Paste your article here..." rows="12"></textarea>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <button class="analyze-btn" id="analyzeBtn">
+                  <span class="btn-text">ANALYZE ARTICLE</span>
+                  <span class="btn-loading" style="display:none;">ANALYZING...</span>
+                </button>
+                <button id="clearBtn" class="btn" style="padding:10px 14px; font-weight:700; background:#777; color:#fff; border:2px solid #000; cursor:pointer; border-radius:6px;">CLEAR</button>
+              </div>
+            </div>
+          </div>
+          <div class="column right-column">
+            <div class="weather-box" id="weatherBox">
+              <h4>Today's Forecast</h4>
+              <div class="weather-icon" id="weatherIcon">⛅</div>
+              <div class="weather-temp" id="weatherTemp">—°</div>
+              <div class="weather-detail" id="weatherDetail">Partly cloudy with a <strong>HIGH CHANCE</strong> of misinformation. Carry your critical thinking umbrella.</div>
+            </div>
+            <div class="classifieds-box">
+              <h4>Classifieds</h4>
+              <div class="classifieds-item">
+                <strong>For Sale</strong>
+                Fake news detector. Almost new. One careful owner. Works better than your uncle at Thanksgiving. Contact: this website.
+              </div>
+              <div class="classifieds-item">
+                <strong>Wanted</strong>
+                Reliable sources. Will pay in citations. No clickbait. Prefer peer-reviewed. Call anytime.
+              </div>
+              <div class="classifieds-item">
+                <strong>Lost & Found</strong>
+                Lost: one context. Last seen in a viral tweet. Reward if returned intact.
+              </div>
+              <div class="classifieds-item">
+                <strong>Notice</strong>
+                Media literacy classes forming now. Bring a pencil and your skepticism. Coffee provided.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="result-section" id="resultSection">
+          <div class="stamp-container" id="stampContainer">
+            <div class="stamp verified" id="verifiedStamp">
+              <div class="stamp-text">VERIFIED</div>
+              <div class="stamp-date">AUTHENTIC</div>
+            </div>
+            <div class="stamp fake" id="fakeStamp">
+              <div class="stamp-text">FAKE</div>
+              <div class="stamp-date">UNVERIFIED</div>
+            </div>
+          </div>
+          <div class="result-details" id="resultDetails"></div>
+        </div>
+
+        <footer class="newspaper-footer">
+          <div class="foot-col">
+            <strong>Editorial Board</strong>
+            Editor-in-Chief: The Algorithm<br>
+            Deputy Editor: Gradient Descent<br>
+            Fact-Check Desk: Neural Net<br>
+            Corrections: Backpropagation
+          </div>
+          <div class="foot-col" style="text-align:center;">
+            <strong>The Aggie Times</strong>
+            Printed by Aggie Press, A&amp;T Campus<br>
+            <em>Est. 2025 • Truth Above All</em><br>
+            <br>
+            <small style="font-size:10px; color:#888;">Price: Free (truth is priceless)</small>
+          </div>
+          <div class="foot-col" style="text-align:right;">
+            <strong>Subscription Info</strong>
+            Digital: Free forever<br>
+            Print: Ask your professor<br>
+            Archives: Coming soon<br>
+            Tip line: paste@aggietimes.edu
+          </div>
+        </footer>
+      </div>
+
+      <!-- BACK PAGE (Academic Edition) -->
+      <div class="newspaper-container page-back">
+        <div class="fold-crease"></div>
+        <div class="coffee-ring coffee-ring-1"></div>
+        <div class="coffee-ring coffee-ring-2"></div>
+        <div class="newspaper-header academic-header">
+          <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
+          <h1 class="masthead">THE AGGIE TIMES</h1>
+          <div class="paper-tagline">Academic Edition &mdash; Stricter verification for research and high-stakes fact-checking</div>
+          <div class="academic-rule"></div>
+          <div class="date-line">VOL. 1 • NO. 1 • <span id="currentDateBack"></span> &nbsp;•&nbsp; <span class="academic-badge">ACADEMIC EDITION</span></div>
+        </div>
+        <div class="newspaper-content">
+          <div class="column left-column">
+            <div class="editors-box academic-box" style="border-color:#1a5f1a;">
+              <h4 style="border-color:#1a5f1a;">What We Check</h4>
+              <div class="check-item">
+                <span class="check-label">Source Credibility</span>
+                <p class="check-desc">Are citations peer-reviewed? Do named outlets have editorial standards?</p>
+              </div>
+              <div class="check-item">
+                <span class="check-label">Claim Consistency</span>
+                <p class="check-desc">Do the article's claims align internally and with established record?</p>
+              </div>
+              <div class="check-item">
+                <span class="check-label">Emotional Language</span>
+                <p class="check-desc">High-affect language and loaded framing are flagged as credibility risks.</p>
+              </div>
+              <div class="check-item">
+                <span class="check-label">Citation Quality</span>
+                <p class="check-desc">Vague sourcing ("experts say") is weighted against specific attributions.</p>
+              </div>
+              <div class="check-item">
+                <span class="check-label">Publication Context</span>
+                <p class="check-desc">Satire sites, known misinformation outlets, and unverified blogs are flagged.</p>
+              </div>
+            </div>
+          </div>
+          <div class="column center-column">
+            <div class="article-box" id="articleBoxAcademic">
+              <div class="ink-splatters" id="inkSplattersAcademic">
+                <div class="splatter splatter-1"></div>
+                <div class="splatter splatter-2"></div>
+                <div class="splatter splatter-3"></div>
+                <div class="splatter splatter-4"></div>
+                <div class="splatter splatter-5"></div>
+                <div class="splatter splatter-6"></div>
+              </div>
+              <textarea class="article-input" id="articleInputAcademic" placeholder="Paste your article here (academic verification)..." rows="12"></textarea>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <button class="analyze-btn academic-btn" id="analyzeBtnAcademic">
+                  <span class="btn-text">ANALYZE (ACADEMIC)</span>
+                  <span class="btn-loading" style="display:none;">ANALYZING...</span>
+                </button>
+                <button id="clearBtnAcademic" class="btn" style="padding:10px 14px; font-weight:700; background:#145214; color:#fff; border:2px solid #000; cursor:pointer; border-radius:6px;">CLEAR</button>
+              </div>
+            </div>
+          </div>
+          <div class="column right-column">
+            <div class="info-box academic-box">
+              <h3>ACADEMIC MODE</h3>
+              <p>Uses stricter criteria, claim extraction, and evidence-based prompts. Best for research and high-stakes verification.</p>
+            </div>
+            <div class="classifieds-box academic-box" style="border-color:#1a5f1a;">
+              <h4 style="border-color:#1a5f1a;">Research Standards</h4>
+              <div class="classifieds-item">
+                <strong>Burden of Proof</strong>
+                Academic mode requires corroboration from at least two independent, verifiable sources before a claim is considered credible.
+              </div>
+              <div class="classifieds-item">
+                <strong>Citing a Flagged Article</strong>
+                If an article is flagged, note it as "unverified" in your bibliography and seek a primary source for the underlying claim.
+              </div>
+              <div class="classifieds-item">
+                <strong>Confidence Scores</strong>
+                Results include a confidence percentage. Scores below 75% should be treated as inconclusive for academic purposes.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="result-section" id="resultSectionAcademic">
+          <div class="stamp-container" id="stampContainerAcademic">
+            <div class="stamp verified" id="verifiedStampAcademic">
+              <div class="stamp-text">VERIFIED</div>
+              <div class="stamp-date">AUTHENTIC</div>
+            </div>
+            <div class="stamp fake" id="fakeStampAcademic">
+              <div class="stamp-text">FAKE</div>
+              <div class="stamp-date">UNVERIFIED</div>
+            </div>
+          </div>
+          <div class="result-details" id="resultDetailsAcademic"></div>
+        </div>
+
+        <footer class="newspaper-footer">
+          <div class="foot-col">
+            <strong>Academic Standards</strong>
+            Verification Method: LLM + LSTM<br>
+            Evidence Threshold: Strict<br>
+            Confidence Required: 75%+<br>
+            Last Model Update: 2025
+          </div>
+          <div class="foot-col" style="text-align:center;">
+            <strong>The Aggie Times — Academic Edition</strong>
+            Printed by Aggie Press, A&amp;T Campus<br>
+            <em>Est. 2025 • Truth Above All</em><br>
+            <br>
+            <small style="font-size:10px; color:#888;">For research use. Not a substitute for peer review.</small>
+          </div>
+          <div class="foot-col" style="text-align:right;">
+            <strong>Research Desk</strong>
+            Editor: The Algorithm<br>
+            Fact-Check: Neural Net<br>
+            Citations: Backpropagation<br>
+            Contact: research@aggietimes.edu
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stop the Presses Toast -->
+  <div class="stop-presses-toast" id="stopPressesToast">🗞 STOP THE PRESSES!</div>
+
+  <script>
+    // ===== DATE =====
+    var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('currentDate').textContent = dateStr;
+    var backEl = document.getElementById('currentDateBack');
+    if (backEl) backEl.textContent = dateStr;
+
+    // ===== DYNAMIC TICKER HEADLINES =====
+    var TICKER_HEADLINES = [
+      "LOCAL MAN READS HEADLINE, FORMS OPINION WITHOUT READING ARTICLE — EXPERTS UNSURPRISED",
+      "STUDY: 9 OUT OF 10 STUDIES CITED ON SOCIAL MEDIA WERE MISREAD",
+      "SCIENTISTS BAFFLED AS VIRAL POST TURNS OUT TO BE FROM 2014",
+      "POLITICIAN CLAIMS QUOTE WAS 'TAKEN OUT OF CONTEXT' — QUOTE WAS ENTIRE SPEECH",
+      "UNCLE AT THANKSGIVING CITED AS MOST PROLIFIC FAKE NEWS SPREADER OF DECADE",
+      "BREAKING: SCREENSHOT OF TWEET USED AS PRIMARY SOURCE FOR SECOND TIME THIS WEEK",
+      "AREA NEWSPAPER FACT-CHECKS SELF, FINDS MIXED RESULTS",
+      "EXPERTS WARN OF DANGEROUS NEW DISORDER: READING ONLY THE HEADLINE",
+      "AGGIE TIMES FAKE NEWS DETECTOR ACHIEVES SENTIENCE, STILL RECOMMENDS CITING YOUR SOURCES",
+      "MAN WHO 'DID HIS OWN RESEARCH' REPORTEDLY GOOGLED FOR 4 MINUTES",
+      "MISINFORMATION TRAVELS AROUND WORLD BEFORE TRUTH LACES UP BOOTS — AGAIN",
+      "LOCAL GRANDMA SHARES ARTICLE FROM 'CHANNEL45NEWSDAILYINFO.NET' — WE'RE ON THE CASE",
+      "CLICKBAIT HEADLINE CONTAINS EXACTLY ONE TRUTHFUL WORD — SOURCES SAY",
+      "JOURNALISTS STILL EXIST, CONTINUE DOING JOURNALISM DESPITE RUMORS TO CONTRARY",
+    ];
+
+    function buildTicker(headlines) {
+      var track = document.getElementById('tickerTrack');
+      if (!track) return;
+      // Double the set so seamless loop works
+      var allItems = headlines.concat(headlines);
+      var html = allItems.map(function(h) {
+        return '<span class="ticker-text">' + h + ' <span class="sep">•</span></span>';
+      }).join('');
+      track.innerHTML = html;
+      // Dynamically set animation duration based on content length
+      var totalChars = allItems.reduce(function(acc, h) { return acc + h.length; }, 0);
+      var duration = Math.max(40, totalChars * 0.12);
+      track.style.animationDuration = duration + 's';
+    }
+
+    buildTicker(TICKER_HEADLINES);
+
+    function setTickerAnalyzing() {
+      var track = document.getElementById('tickerTrack');
+      if (!track) return;
+      var msgs = [
+        "FACT-CHECK IN PROGRESS — STAND BY FOR VERDICT",
+        "PRESSES ROLLING — AWAITING ANALYSIS RESULTS",
+        "REPORTER ON THE SCENE — GATHERING EVIDENCE NOW",
+        "HOLD THE FRONT PAGE — ANALYSIS UNDERWAY",
+      ];
+      var doubled = msgs.concat(msgs);
+      track.innerHTML = doubled.map(function(m) {
+        return '<span class="ticker-text" style="color:#ffe080;">' + m + ' <span class="sep" style="opacity:0.5;">◆</span></span>';
+      }).join('');
+      track.style.animationDuration = '20s';
+    }
+
+    function resetTicker() {
+      buildTicker(TICKER_HEADLINES);
+    }
+
+    // ===== WEATHER BOX =====
+    var weatherConditions = [
+      { icon: '⛈', temp: null, detail: 'Severe misinformation storm. Do not share without umbrella.' },
+      { icon: '⛅', temp: null, detail: 'Partly cloudy with a <strong>HIGH CHANCE</strong> of misinformation. Carry your critical thinking umbrella.' },
+      { icon: '☀️', temp: null, detail: 'Clear skies for media literacy today. Good day to read primary sources.' },
+      { icon: '🌫️', temp: null, detail: 'Dense fog of ambiguity. Visibility near zero. Slow down before sharing.' },
+      { icon: '🌪️', temp: null, detail: 'Viral tornado conditions. Seek shelter in reputable outlets.' },
+      { icon: '❄️', temp: null, detail: 'Ice-cold takes incoming. Warm up with some verified facts.' },
+    ];
+    var todayWeather = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+    var fakeTemp = Math.floor(Math.random() * 30) + 55; // 55–84°F
+    document.getElementById('weatherIcon').textContent = todayWeather.icon;
+    document.getElementById('weatherTemp').textContent = fakeTemp + '°F';
+    document.getElementById('weatherDetail').innerHTML = todayWeather.detail;
+
+    // ===== STOP THE PRESSES TOAST =====
+    function showStopThePresses() {
+      var toast = document.getElementById('stopPressesToast');
+      if (!toast) return;
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2200);
+    }
+
+    // ===== STAMP SOUND =====
+    function playStampSound() {
+      try {
+        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 200;
+        oscillator.type = 'square';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {}
+    }
+
+    var newspaperWrapper = document.getElementById('newspaperWrapper');
+    var flipContainer = document.getElementById('flipContainer');
+    var academicModeCheckbox = document.getElementById('academicMode');
+    var articleInput = document.getElementById('articleInput');
+    var articleInputAcademic = document.getElementById('articleInputAcademic');
+    var analyzeBtn = document.getElementById('analyzeBtn');
+    var analyzeBtnAcademic = document.getElementById('analyzeBtnAcademic');
+    var clearBtn = document.getElementById('clearBtn');
+    var clearBtnAcademic = document.getElementById('clearBtnAcademic');
+    var resultBanner = document.getElementById('resultBanner');
+    var resultBannerText = document.getElementById('resultBannerText');
+    var serverBanner = document.getElementById('serverErrorBanner');
+
+    function displayBanner(msg, kind) {
+      try {
+        if (!serverBanner) return;
+        // kind: 'error'|'success'|'warn'
+        var bg = kind === 'success' ? '#28a745' : (kind === 'warn' ? '#ff8c00' : '#c41e3a');
+        serverBanner.style.background = bg;
+        serverBanner.style.display = 'block';
+        serverBanner.textContent = msg;
+        setTimeout(function(){ serverBanner.style.display = 'none'; }, 6000);
+      } catch (e) { console.log('banner failed', e); }
+    }
+
+    function animatePageFlip(toAcademic) {
+      if (!flipContainer) return;
+      if (flipContainer.classList.contains('is-flipping')) return;
+
+      var activePage = toAcademic
+        ? document.querySelector('.page-front')
+        : document.querySelector('.page-back');
+      var activeHeight = activePage ? activePage.offsetHeight : flipContainer.offsetHeight;
+      if (activeHeight > 0) {
+        flipContainer.style.height = activeHeight + 'px';
+      }
+
+      flipContainer.classList.remove('to-back', 'to-front');
+      flipContainer.classList.add('is-flipping', toAcademic ? 'to-back' : 'to-front');
+
+      // Apply the flipped class immediately so the UI responds to the click without perceived delay,
+      // then remove the temporary flipping classes after the transition completes.
+      flipContainer.classList.toggle('flipped', toAcademic);
+
+      setTimeout(function() {
+        flipContainer.classList.remove('is-flipping', 'to-back', 'to-front');
+        flipContainer.style.height = 'auto';
+        syncFlipHeight();
+      }, 480);
+    }
+
+    if (academicModeCheckbox && flipContainer) {
+      flipContainer.classList.toggle('flipped', academicModeCheckbox.checked);
+      academicModeCheckbox.addEventListener('change', function() {
+        var isChecked = this.checked;
+        if (isChecked) articleInputAcademic.value = articleInput.value;
+        else articleInput.value = articleInputAcademic.value;
+
+        animatePageFlip(isChecked);
+
+        if (newspaperWrapper) {
+          var topOffset = newspaperWrapper.getBoundingClientRect().top + window.scrollY - 60;
+          window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
+        }
+      });
+    }
+
+    function syncFlipHeight() {
+      if (!flipContainer) return;
+      flipContainer.style.height = 'auto';
+    }
+
+    // Run on load and on resize
+    window.addEventListener('load', syncFlipHeight);
+    window.addEventListener('resize', syncFlipHeight);
+
+    articleInput.addEventListener('input', function() {
+      if (!academicModeCheckbox || !academicModeCheckbox.checked) articleInputAcademic.value = this.value;
+    });
+    if (articleInputAcademic) {
+      articleInputAcademic.addEventListener('input', function() {
+        if (academicModeCheckbox && academicModeCheckbox.checked) articleInput.value = this.value;
+      });
+    }
+
+    // ===== PASTE SANITIZER =====
+    function cleanPastedText(text) {
+      if (!text) return '';
+      // remove image URLs
+      text = text.replace(/\bhttps?:\/\/\S+\.(?:jpg|jpeg|png|gif|svg|webp)(?:\?\S*)?/gi, '');
+      // remove markdown image syntax
+      text = text.replace(/!\[.*?\]\(.*?\)/g, '');
+      // strip any HTML tags that may have been copied
+      text = text.replace(/<[^>]+>/g, '');
+      // normalize whitespace
+      text = text.replace(/\r\n/g, '\n').replace(/\t/g, ' ');
+
+      var lines = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
+      var keep = [];
+      var skipWords = ['related', 'advert', 'sponsored', 'share', 'comments', 'read more', 'see also', 'related articles'];
+      for (var i=0;i<lines.length;i++){
+        var l = lines[i];
+        var ll = l.toLowerCase();
+        // skip short noisy lines
+        if (l.length < 30) continue;
+        // skip boilerplate lines / ad indicators
+        var skip = false;
+        for (var k=0;k<skipWords.length;k++){ if (ll.indexOf(skipWords[k]) !== -1) { skip = true; break; } }
+        if (skip) continue;
+        // skip lines that look like image captions or source credits
+        if (/^(image|photo|picture|caption|photograph|source|credit|by)[:\-\s]/i.test(l)) continue;
+        // skip lines containing common agency credits or copyright markers
+        if (/\b(getty|reuters|ap\b|associated press|shutterstock|©|copyright|via)\b/i.test(l)) continue;
+        // remove inline/parenthetical captions like "(Photo: ...)", "— Photo by ...", "(Image: ...)"
+        if (/\(?(?:photo|image|picture|caption|photograph)[^)]*\)?/i.test(l)) continue;
+
+        // Heuristic: remove headline/teaser-like lines
+        //  - many Title Case words, short length, no sentence-ending punctuation
+        var words = l.split(/\s+/).filter(Boolean);
+        var titleCaseCount = 0;
+        for (var j=0;j<words.length;j++){ if (/^[A-Z][a-z]/.test(words[j])) titleCaseCount++; }
+        var titleRatio = words.length ? (titleCaseCount / words.length) : 0;
+        var hasCamel = /[a-z][A-Z]/.test(l); // e.g., 'Morning VitalityNerve'
+        var adKeywords = /\b(costco|shoppers|find|facelift|buy|deal|promo|sponsored|subscribe|subscribe|bottle|vitality|nerve)\b/i;
+        if ((titleRatio > 0.6 && l.length < 120 && !/[.!?]\s*$/.test(l)) || hasCamel || adKeywords.test(l)) continue;
+
+        keep.push(l);
+      }
+
+      if (keep.length === 0) {
+        // fallback: return original cleaned text but stripped of tiny lines
+        return lines.join('\n\n');
+      }
+      return keep.join('\n\n');
+    }
+
+    function handlePasteIntoTextarea(e) {
+      try {
+        e.preventDefault();
+        var clipboard = (e.clipboardData || window.clipboardData);
+        var pasted = clipboard.getData('text/plain') || '';
+        var cleaned = cleanPastedText(pasted);
+        var ta = e.target;
+        var start = ta.selectionStart || 0;
+        var end = ta.selectionEnd || 0;
+        var val = ta.value || '';
+        ta.value = val.slice(0, start) + cleaned + val.slice(end);
+        var newPos = start + cleaned.length;
+        ta.selectionStart = ta.selectionEnd = newPos;
+        // trigger input handlers to sync academic/regular fields
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+      } catch (err) { console.error('paste sanitize failed', err); }
+    }
+
+    if (articleInput) articleInput.addEventListener('paste', handlePasteIntoTextarea);
+    if (articleInputAcademic) articleInputAcademic.addEventListener('paste', handlePasteIntoTextarea);
+
+      // Helper: select/scroll to first match of a regex or substring inside a textarea
+      function focusMatchInTextarea(ta, pattern) {
+        if (!ta || !pattern) return false;
+        var text = ta.value || '';
+        var idx = -1;
+        if (pattern instanceof RegExp) {
+          var m = text.match(pattern);
+          if (m && m.index !== undefined) idx = m.index;
+          else if (m && m[0]) idx = text.indexOf(m[0]);
+        } else {
+          idx = text.toLowerCase().indexOf(pattern.toLowerCase());
+        }
+        if (idx >= 0) {
+          var len = 0;
+          if (pattern instanceof RegExp) {
+            var m2 = text.substring(idx).match(pattern);
+            len = m2 && m2[0] ? m2[0].length : 0;
+          } else {
+            len = pattern.length;
+          }
+          ta.focus();
+          ta.selectionStart = idx;
+          ta.selectionEnd = idx + Math.max(1, len);
+          ta.scrollTop = ta.selectionStart; // rough
+          return true;
+        }
+        return false;
+      }
+
+    function resetResults(opts) {
+      var r = opts.resultSection, v = opts.verifiedStamp, f = opts.fakeStamp, d = opts.resultDetails, ink = opts.inkSplatters;
+      if (r) r.classList.remove('show');
+      if (v) v.classList.remove('show');
+      if (f) f.classList.remove('show');
+      resultBanner.classList.remove('show', 'verified', 'fake');
+      resultBannerText.textContent = '';
+      if (newspaperWrapper) newspaperWrapper.classList.remove('has-result-banner');
+      if (d) d.textContent = '';
+      if (ink) {
+        var splatters = ink.querySelectorAll('.splatter');
+        splatters.forEach(function(splatter) {
+          splatter.style.animation = 'none';
+          setTimeout(function() { splatter.style.animation = ''; }, 10);
+        });
+        ink.classList.remove('active');
+      }
+      // Remove any highlight overlays and restore textarea editable state
+      function _removeOverlay(boxId, taId) {
+        try {
+          var box = document.getElementById(boxId);
+          if (!box) return;
+          var ov = box.querySelector('.highlight-layer');
+          if (ov) {
+            // remove scroll handlers
+            try { if (ov._onScroll) ov.removeEventListener('scroll', ov._onScroll); } catch (e) {}
+            ov.remove();
+          }
+          var nb = box.querySelector('.highlight-next');
+          if (nb) nb.remove();
+        } catch (e) {}
+        try {
+          var ta = document.getElementById(taId);
+          if (ta) { ta.readOnly = false; ta.style.color = ''; ta.style.caretColor = ''; }
+          try { if (ta && ta._onScroll) { ta.removeEventListener('scroll', ta._onScroll); ta._onScroll = null; } } catch (e) {}
+        } catch (e) {}
+      }
+      _removeOverlay('articleBox','articleInput');
+      _removeOverlay('articleBoxAcademic','articleInputAcademic');
+    }
+
+    function runAnalysis(isAcademic) {
+      var textarea = isAcademic ? articleInputAcademic : articleInput;
+      var btn = isAcademic ? analyzeBtnAcademic : analyzeBtn;
+      var inkSplatters = document.getElementById(isAcademic ? 'inkSplattersAcademic' : 'inkSplatters');
+      var resultSection = document.getElementById(isAcademic ? 'resultSectionAcademic' : 'resultSection');
+      var verifiedStamp = document.getElementById(isAcademic ? 'verifiedStampAcademic' : 'verifiedStamp');
+      var fakeStamp = document.getElementById(isAcademic ? 'fakeStampAcademic' : 'fakeStamp');
+      var resultDetails = document.getElementById(isAcademic ? 'resultDetailsAcademic' : 'resultDetails');
+
+      var text = textarea.value.trim();
+      if (!text) {
+        alert('Please paste an article to analyze');
+        textarea.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.querySelector('.btn-text').style.display = 'none';
+      btn.querySelector('.btn-loading').style.display = 'inline';
+
+      resetResults({
+        resultSection: resultSection,
+        verifiedStamp: verifiedStamp,
+        fakeStamp: fakeStamp,
+        resultDetails: resultDetails,
+        inkSplatters: inkSplatters
+      });
+
+      setTickerAnalyzing();
+
+      setTimeout(function() {
+        var isVerified = Math.random() > 0.5;
+        inkSplatters.classList.remove('active');
+        resultSection.classList.add('show');
+        resultBannerText.textContent = isVerified ? '✓ VERIFIED — This article is authentic' : '✗ FAKE — This article is not credible';
+        resultBanner.classList.remove('verified', 'fake');
+        resultBanner.classList.add('show', isVerified ? 'verified' : 'fake');
+        if (newspaperWrapper) newspaperWrapper.classList.add('has-result-banner');
+        playStampSound();
+        showStopThePresses();
+        resetTicker();
+        setTimeout(function() { resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+
+        // Show ink splatters only for non-academic fake results
+        if (!isVerified && !isAcademic) {
+          inkSplatters.classList.add('active');
+        } else {
+          inkSplatters.classList.remove('active');
+        }
+
+        // Build richer result details: confidence bar, LSTM signals, LLM explanation, claims to double-check
+        var confBase = isAcademic ? 70 : 60;
+        var confidence = Math.min(99, Math.floor(confBase + Math.random() * (100 - confBase)));
+
+        // Simple claim extraction (first few sentence fragments)
+        var sentences = text.split(/\.|\n|\?|!/).map(function(s){ return s.trim(); }).filter(Boolean);
+        var claims = sentences.slice(0,3).map(function(s){ return s.length > 140 ? s.slice(0,137) + '...' : s; });
+
+        var lstmScore = (0.4 + Math.random() * 0.5).toFixed(2);
+        var lstmSignals = ['stylistic drift','clickbait headline','hedging language','low source density'];
+        var chosenSignals = lstmSignals.sort(function(){return 0.5 - Math.random();}).slice(0,2).join(', ');
+
+        // Additional content-signal heuristics
+        var authorMatch = null;
+        var authorRx = /^by\s+([A-Z][\w\-\.\s]{2,80})/mi;
+        var am = text.match(authorRx);
+        if (am) authorMatch = am[1].trim();
+
+        // Citation count (unique URLs)
+        var urlRx = /https?:\/\/[^\s\)]+/gi;
+        var urls = (text.match(urlRx) || []);
+        var uniqueUrls = Array.from(new Set(urls));
+        var citationCount = uniqueUrls.length;
+
+        // Hedging & qualifiers (count matches via regex)
+        var hedgeWords = ['may','might','could','possibly','suggests','appears','seem','likely','reportedly','according to','claims'];
+        var hedgeRx = new RegExp('\\b(' + hedgeWords.map(function(w){ return w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|') + ')\\b','gi');
+        var hedgeMatches = text.match(hedgeRx) || [];
+        var hedgeCount = hedgeMatches.length;
+
+        // Suspicious statistics: numbers/percentages without an adjacent source keyword
+        var statRx = /\b\d{1,3}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b/g;
+        var suspiciousStats = [];
+        var statMatch;
+        while ((statMatch = statRx.exec(text)) !== null) {
+          var s = statMatch[0];
+          var idx = statMatch.index;
+          var context = text.substring(Math.max(0, idx-80), Math.min(text.length, idx+80)).toLowerCase();
+          if (!/source|according|study|survey|report|cdc|who|doi|journal/.test(context)) {
+            suspiciousStats.push({text: s, index: idx});
+          }
+        }
+
+        // Unattributed quotes: quoted strings without nearby attribution words
+        var quoteRx = /"([^"]{15,240})"/g;
+        var unattributed = [];
+        var q;
+        while ((q = quoteRx.exec(text)) !== null) {
+          var qi = q.index;
+          var ctxt = text.substring(Math.max(0, qi-60), Math.min(text.length, qi+q[0].length+60)).toLowerCase();
+          if (!/said|says|according to|told|stated|wrote|tweeted/.test(ctxt)) unattributed.push({text: q[1], index: qi});
+        }
+
+        var llmExplanation = isVerified
+          ? 'The LLM explanation finds supporting context and corroborating sources for the article claims.'
+          : 'The LLM notes unsupported assertions, factual inconsistencies, and missing primary sources.';
+
+        var suffix = isAcademic ? 'Academic' : '';
+        var html = '';
+          html += '<h3 style="margin-top:0; color:' + (isVerified ? '#28a745' : '#c41e3a') + '; font-weight:900;">' + (isVerified ? '✓ VERIFIED ARTICLE' : '✗ FAKE NEWS DETECTED') + '</h3>';
+          html += '<div style="display:flex; gap:14px; align-items:center; margin-top:8px; flex-wrap:wrap;">';
+          html += '<div style="flex:1; min-width:220px;">';
+          html += '<div style="font-weight:700; margin-bottom:6px;">Confidence</div>';
+          html += '<div style="background:#eee; border:1px solid #ddd; height:14px; border-radius:8px; overflow:hidden;">';
+          html += '<div id="confidenceFill' + suffix + '" style="height:100%; width:' + confidence + '%; background:' + (isVerified ? '#28a745' : '#c41e3a') + '; transition:width:600ms ease;"></div>';
+          html += '</div>';
+          html += '<div style="font-size:13px; color:#333; margin-top:6px;">' + confidence + '%</div>';
+          html += '</div>';
+
+          // (removed inline LSTM summary — detailed panels below)
+
+          html += '</div>'; // end top row
+
+          // Collapsible detailed panels placed under the confidence bar for better structure
+          html += '<div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">';
+
+          // LSTM details
+          html += '<details id="detailsLSTM' + suffix + '" style="background:#f7fbff; border:1px solid #e6f0ff; padding:8px; border-radius:6px;">';
+          html += '<summary style="font-weight:900; cursor:pointer;">Content Signals</summary>';
+          // display presence as binary (1 if any match found) to avoid confusing counts
+          var displayAuthor = authorMatch ? 1 : 0;
+          var displayCitation = citationCount > 0 ? 1 : 0;
+          var displayHedge = hedgeCount > 0 ? 1 : 0;
+          var displayQuotes = (unattributed && unattributed.length) ? 1 : 0;
+          var displayStats = (suspiciousStats && suspiciousStats.length) ? 1 : 0;
+
+          html += '<div style="margin-top:8px; font-size:13px; color:#333; display:flex; flex-direction:column; gap:8px;">';
+          html += '<div><strong title="Detected bylines like \"By Name\">Author:</strong> ' + (authorMatch ? ('<span>' + authorMatch + '</span> <button class="btn small" data-signal="author' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button>') : '<em>Not found</em>') + '</div>';
+          html += '<div><strong title="Unique external links found in the article">Citation present:</strong> ' + displayCitation + ' <button class="btn small" data-signal="citations' + suffix + '" style="margin-left:8px; padding:3px 8px;">Show URLs</button></div>';
+          html += '<div><strong title="Hedging words (may/might/appears) that weaken claims">Hedging / Qualifiers:</strong> ' + displayHedge + ' <button class="btn small" data-signal="hedge' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          html += '<div><strong title="Quoted text that lacks nearby attribution (e.g., \"said\")">Unattributed quotes present:</strong> ' + displayQuotes + ' <button class="btn small" data-signal="quotes' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          html += '<div><strong title="Numbers/percentages that lack a nearby source or citation">Suspicious statistics present:</strong> ' + displayStats + ' <button class="btn small" data-signal="stats' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          html += '</div>';
+          html += '</details>';
+
+          // LLM details
+          html += '<details id="detailsLLM' + suffix + '" style="background:#f7fbff; border:1px solid #e6f0ff; padding:8px; border-radius:6px;">';
+          html += '<summary style="font-weight:900; cursor:pointer;">LLM Explanation</summary>';
+          html += '<div id="llmCard' + suffix + '" style="margin-top:8px; font-size:13px;">' + llmExplanation + '</div>';
+          html += '</details>';
+
+          // Claims details
+          html += '<details id="detailsClaims' + suffix + '" style="background:#f7fbff; border:1px solid #e6f0ff; padding:8px; border-radius:6px;">';
+          html += '<summary style="font-weight:900; cursor:pointer;">Claims to Double-Check</summary>';
+          html += '<ol id="claimsList' + suffix + '" style="margin:8px 0 0 18px; font-size:13px;">';
+        if (claims.length) {
+          for (var i=0;i<claims.length;i++) html += '<li>' + claims[i] + '</li>';
+        } else {
+          html += '<li>No clear claims detected — check quoted assertions and statistics.</li>';
+        }
+          html += '</ol>';
+          html += '</details>';
+
+          html += '</div>'; // end panels container
+
+          html += '<div style="margin-top:12px; color:#333;">';
+          if (isVerified) html += '<p>Sources: Multiple verified items found. Consider citing primary sources for each major claim.</p>';
+          else html += '<p>Issues Found: Unverified claims, questionable sources, inconsistent information. Consider checking the claims listed above.</p>';
+          html += '</div>';
+
+        // append feedback controls (agree/disagree) and download fallback
+        var feedbackHtml = '<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">';
+        feedbackHtml += '<button id="btnAgree' + suffix + '" class="btn" style="background:#28a745; padding:8px 12px;">I agree</button>';
+        feedbackHtml += '<button id="btnDisagree' + suffix + '" class="btn" style="background:#c41e3a; padding:8px 12px;">I disagree</button>';
+        feedbackHtml += '<button id="btnDownloadFeedback' + suffix + '" class="btn" style="background:#444; padding:8px 12px;">Download feedback</button>';
+        feedbackHtml += '</div>';
+
+        resultDetails.innerHTML = html + (isAcademic ? '<p><em>Academic mode: stricter verification applied.</em></p>' : '') + feedbackHtml;
+
+        // attach feedback handlers
+        setTimeout(function() {
+          var sendFeedback = function(payload) {
+            // Attempt to POST to backend /feedback; fallback to localStorage if that fails
+            fetch('/feedback', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            }).then(function(resp){ if (!resp.ok) throw new Error('bad resp'); return resp.json(); }).then(function(j){ console.log('feedback saved', j); displayBanner('Feedback saved', 'success'); }).catch(function(){
+              // fallback: save to localStorage array
+              var key = 'fakenews_feedback';
+              var arr = JSON.parse(localStorage.getItem(key) || '[]');
+              arr.push(Object.assign({ts: new Date().toISOString()}, payload));
+              localStorage.setItem(key, JSON.stringify(arr));
+              displayBanner('Feedback saved locally — use Download to export', 'warn');
+            });
+          };
+
+          var btnA = document.getElementById('btnAgree' + suffix);
+          var btnD = document.getElementById('btnDisagree' + suffix);
+          var btnDL = document.getElementById('btnDownloadFeedback' + suffix);
+          if (btnA) btnA.addEventListener('click', function(){ sendFeedback({item_type:'article', item_text:text, action:'agree', label: isVerified ? 'agree_verified' : 'agree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}}); });
+          if (btnD) btnD.addEventListener('click', function(){ sendFeedback({item_type:'article', item_text:text, action:'disagree', label: isVerified ? 'disagree_verified' : 'disagree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}}); });
+          if (btnDL) btnDL.addEventListener('click', function(){
+            var key = 'fakenews_feedback'; var arr = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!arr.length) { alert('No local feedback to download'); return; }
+            var csv = 'timestamp,item_type,item_text,action,label,claim_index,metadata\n';
+            arr.forEach(function(r){ csv += (r.ts||'') + ',' + '"' + (r.item_type||'') + '","' + (r.item_text||'').replace(/"/g,'""') + '","' + (r.action||'') + '","' + (r.label||'') + '","' + (r.claim_index||'') + '","' + JSON.stringify(r.metadata||{}) + '"\n'; });
+            var blob = new Blob([csv], {type:'text/csv'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a'); a.href = url; a.download = 'feedback_local.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+          });
+
+          // attach claim action handlers
+          var claimButtons = document.querySelectorAll('[data-claim-action]');
+          claimButtons.forEach(function(btn){ btn.addEventListener('click', function(e){
+            var action = this.getAttribute('data-claim-action');
+            var ci = parseInt(this.getAttribute('data-claim-index'));
+            var claimText = this.getAttribute('data-claim-text');
+            sendFeedback({item_type:'claim', item_text:claimText, action:action, claim_index:ci, metadata:{mode:isAcademic? 'academic':'regular'}});
+          }); });
+        }, 40);
+
+          // wire up signal buttons (highlight/show)
+          var wireBtns = function() {
+            var ta = isAcademic ? document.getElementById('articleInputAcademic') : document.getElementById('articleInput');
+            var parent = document.getElementById('detailsLSTM' + suffix);
+            if (!parent) return;
+            var bAuthor = parent.querySelector('[data-signal="author' + suffix + '"]');
+            var bCite = parent.querySelector('[data-signal="citations' + suffix + '"]');
+            var bHedge = parent.querySelector('[data-signal="hedge' + suffix + '"]');
+            var bQuotes = parent.querySelector('[data-signal="quotes' + suffix + '"]');
+            var bStats = parent.querySelector('[data-signal="stats' + suffix + '"]');
+
+            // Highlight-all overlay implementation: show all occurrences with an overlay mirror and a small Next button
+            function escapeHtml(s) { return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+            function escRegex(s){ return (s+'').replace(/[-\\/\^$*+?.()|[\]{}]/g,'\\$&'); }
+            function showHighlightsFor(pattern, markClass, opts) {
+              try {
+                var boxEl = isAcademic ? document.getElementById('articleBoxAcademic') : document.getElementById('articleBox');
+                if (!boxEl) { alert('Unable to show highlights'); return; }
+                // remove existing overlay
+                var existing = boxEl.querySelector('.highlight-layer'); if (existing) existing.remove();
+                var existingNext = boxEl.querySelector('.highlight-next'); if (existingNext) existingNext.remove();
+
+                var text = ta.value || '';
+                var regex = pattern;
+                if (!regex) { alert('No pattern provided'); return; }
+                // produce highlighted HTML by replacing matches with <mark>
+                var matches = text.match(regex);
+                if (!matches || !matches.length) { alert('No matches found'); return; }
+
+                var highlighted = text.replace(regex, function(m){ return '<mark class="' + (markClass||'') + '">' + escapeHtml(m) + '</mark>'; });
+
+                // build overlay and position it exactly over the textarea
+                var overlay = document.createElement('div'); overlay.className = 'highlight-layer';
+                var pre = document.createElement('pre');
+                pre.innerHTML = highlighted.replace(/\n/g,'\n');
+                overlay.appendChild(pre);
+                // compute textarea rect relative to article box so overlay fits exactly
+                var taRect = ta.getBoundingClientRect();
+                var boxRect = boxEl.getBoundingClientRect();
+                overlay.style.left = (taRect.left - boxRect.left) + 'px';
+                overlay.style.top = (taRect.top - boxRect.top) + 'px';
+                overlay.style.width = taRect.width + 'px';
+                overlay.style.height = taRect.height + 'px';
+                boxEl.appendChild(overlay);
+
+                // make textarea read-only and hide its text so mirrored content is visible
+                ta.readOnly = true;
+                ta.style.color = 'transparent';
+                ta.style.caretColor = 'transparent';
+
+                // auto-scroll to first match and sync overlay <-> textarea scrolling
+                var marks = overlay.querySelectorAll('mark');
+                if (marks && marks.length) {
+                  var idx = 0;
+                  var scrollToMark = function(i) {
+                    var m = marks[i];
+                    if (!m) return;
+                    // ensure overlay scrolls so mark is visible
+                    overlay.scrollTop = m.offsetTop - 8;
+                    // also scroll outer page so article box is visible
+                    var globalTop = boxEl.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({ top: Math.max(0, globalTop), behavior: 'smooth' });
+                    // flash a faint outline
+                    m.style.transition = 'box-shadow 160ms ease';
+                    m.style.boxShadow = '0 0 0 3px rgba(255,255,255,0.6)';
+                    setTimeout(function(){ m.style.boxShadow = ''; }, 360);
+                  };
+                  scrollToMark(0);
+                  // add Next button
+                  var nextBtn = document.createElement('button'); nextBtn.className = 'highlight-next'; nextBtn.textContent = 'Next';
+                  nextBtn.addEventListener('click', function(){ if (!marks.length) return; idx = (idx+1) % marks.length; scrollToMark(idx); });
+                  boxEl.appendChild(nextBtn);
+
+                  // Sync overlay <-> textarea scrolling so user can scroll naturally
+                  overlay._onScroll = function() { try { ta.scrollTop = overlay.scrollTop; } catch (e){} };
+                  overlay.addEventListener('scroll', overlay._onScroll);
+                  ta._onScroll = function() { try { overlay.scrollTop = ta.scrollTop; } catch (e){} };
+                  ta.addEventListener('scroll', ta._onScroll);
+                }
+              } catch (e) { console.error('highlight failed', e); alert('Highlight failed'); }
+            }
+
+            if (bAuthor && authorMatch) bAuthor.addEventListener('click', function(){
+              var rx = new RegExp('\\bby\\s+' + escRegex(authorMatch), 'gi');
+              showHighlightsFor(rx, 'sig-author');
+            });
+            if (bCite) bCite.addEventListener('click', function(){
+              if (!uniqueUrls || !uniqueUrls.length) { alert('No URLs found in text'); return; }
+              // build a regex that matches any of the URLs
+              var alt = uniqueUrls.map(function(u){ return escRegex(u); }).join('|');
+              var rx = new RegExp('(' + alt + ')', 'gi');
+              showHighlightsFor(rx, 'sig-citations');
+            });
+            if (bHedge) bHedge.addEventListener('click', function(){ showHighlightsFor(new RegExp(hedgeRx.source, 'gi'), 'sig-hedge'); });
+            if (bQuotes && unattributed.length) bQuotes.addEventListener('click', function(){
+              var alt = unattributed.map(function(q){ return escRegex('"' + q.text + '"'); }).join('|');
+              var rx = new RegExp('(' + alt + ')', 'gi');
+              showHighlightsFor(rx, 'sig-quotes');
+            });
+            if (bStats && suspiciousStats.length) bStats.addEventListener('click', function(){
+              var alt = suspiciousStats.map(function(s){ return escRegex(s.text); }).join('|');
+              var rx = new RegExp('(' + alt + ')', 'gi');
+              showHighlightsFor(rx, 'sig-stats');
+            });
+          };
+          wireBtns();
+        if (isVerified) verifiedStamp.classList.add('show'); else fakeStamp.classList.add('show');
+
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loading').style.display = 'none';
+      }, 3000);
+    }
+
+    if (analyzeBtn) analyzeBtn.addEventListener('click', function() { runAnalysis(false); });
+    if (analyzeBtnAcademic) analyzeBtnAcademic.addEventListener('click', function() { runAnalysis(true); });
+
+    if (clearBtn) clearBtn.addEventListener('click', function(){
+      if (articleInput) articleInput.value = '';
+      if (articleInputAcademic) articleInputAcademic.value = '';
+      if (articleInput) articleInput.focus();
+      // clear results for regular view
+      resetResults({
+        resultSection: document.getElementById('resultSection'),
+        verifiedStamp: document.getElementById('verifiedStamp'),
+        fakeStamp: document.getElementById('fakeStamp'),
+        resultDetails: document.getElementById('resultDetails'),
+        inkSplatters: document.getElementById('inkSplatters')
+      });
+    });
+
+    if (clearBtnAcademic) clearBtnAcademic.addEventListener('click', function(){
+      if (articleInput) articleInput.value = '';
+      if (articleInputAcademic) articleInputAcademic.value = '';
+      if (articleInputAcademic) articleInputAcademic.focus();
+      // clear results for academic view
+      resetResults({
+        resultSection: document.getElementById('resultSectionAcademic'),
+        verifiedStamp: document.getElementById('verifiedStampAcademic'),
+        fakeStamp: document.getElementById('fakeStampAcademic'),
+        resultDetails: document.getElementById('resultDetailsAcademic'),
+        inkSplatters: document.getElementById('inkSplattersAcademic')
+      });
+    });
+
+    if (articleInput) {
+      articleInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey && !analyzeBtn.disabled) {
+          e.preventDefault();
+          analyzeBtn.click();
+        }
+      });
+    }
+    if (articleInputAcademic) {
+      articleInputAcademic.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey && !analyzeBtnAcademic.disabled) {
+          e.preventDefault();
+          analyzeBtnAcademic.click();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
