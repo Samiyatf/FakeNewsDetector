@@ -1679,7 +1679,7 @@
 
         // Additional content-signal heuristics
         var authorMatch = null;
-        var authorRx = /^by\s+([A-Z][\w\-\.\s]{2,80})/mi;
+        var authorRx = /^by\s+([A-Z][^\r\n]{2,80})/mi;
         var am = text.match(authorRx);
         if (am) authorMatch = am[1].trim();
 
@@ -1695,17 +1695,51 @@
         var hedgeMatches = text.match(hedgeRx) || [];
         var hedgeCount = hedgeMatches.length;
 
-        // Suspicious statistics: numbers/percentages without an adjacent source keyword
-        var statRx = /\b\d{1,3}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b/g;
+        // Suspicious statistics: improved heuristic
+        // Match longer numbers (years/large counts) first, then grouped numbers/percentages
+        var statRx = /\b\d{4,}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b|\b\d{1,3}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b/g;
         var suspiciousStats = [];
         var statMatch;
         while ((statMatch = statRx.exec(text)) !== null) {
           var s = statMatch[0];
           var idx = statMatch.index;
-          var context = text.substring(Math.max(0, idx-80), Math.min(text.length, idx+80)).toLowerCase();
-          if (!/source|according|study|survey|report|cdc|who|doi|journal/.test(context)) {
+          var contextStart = Math.max(0, idx-80);
+          var contextEnd = Math.min(text.length, idx+80);
+          var context = text.substring(contextStart, contextEnd);
+          var contextLower = context.toLowerCase();
+
+          // Normalize matched number for parsing
+          var numOnly = s.replace(/[,\s%]/g,'').replace(/percent/ig,'');
+
+          // 1) Skip obvious years (1900-2100)
+          if (/^\d{4}$/.test(numOnly)) {
+            var year = parseInt(numOnly, 10);
+            if (year >= 1900 && year <= 2100) continue;
+          }
+
+          // 2) Skip numbers that appear in year-like contexts (e.g., "in 2026", "year 2026")
+          if (/\bin\s+\d{4}\b|\byear\s+\d{4}\b/.test(contextLower)) continue;
+
+          // 3) Prefer percentages or numbers with explicit units nearby
+          var after = text.substring(idx + s.length, Math.min(text.length, idx + s.length + 40)).toLowerCase();
+          var before = text.substring(Math.max(0, idx-20), idx).toLowerCase();
+          var isPercent = /%|\bpercent\b/.test((s + ' ' + after));
+          var unitMatch = /\b(people|deaths|cases|votes|dollars|usd|km|kilometers|miles|kg|tons|million|billion|thousand|k\b)\b/.test(after + ' ' + before);
+
+          // 4) Check for nearby explicit source markers (if present, it's less suspicious)
+          var hasSourceNearby = /source|according|study|survey|report|cdc|who|doi|journal|http|https|www\.|doi:/.test(contextLower);
+
+          // If it's a percent and there's no nearby source, mark as suspicious immediately.
+          if (isPercent && !hasSourceNearby) {
+            suspiciousStats.push({text: s, index: idx});
+            continue;
+          }
+
+          // Decide: mark suspicious only if it has unit and lacks source nearby
+          if (unitMatch && !hasSourceNearby) {
             suspiciousStats.push({text: s, index: idx});
           }
+          // otherwise skip (do not add plain numbers like small integers or years)
         }
 
         // Unattributed quotes: quoted strings without nearby attribution words
@@ -1741,22 +1775,50 @@
           // Collapsible detailed panels placed under the confidence bar for better structure
           html += '<div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">';
 
-          // LSTM details
+          // LSTM / Content Signal details — show actual counts and omit absent signals
           html += '<details id="detailsLSTM' + suffix + '" style="background:#f7fbff; border:1px solid #e6f0ff; padding:8px; border-radius:6px;">';
           html += '<summary style="font-weight:900; cursor:pointer;">Content Signals</summary>';
-          // display presence as binary (1 if any match found) to avoid confusing counts
-          var displayAuthor = authorMatch ? 1 : 0;
-          var displayCitation = citationCount > 0 ? 1 : 0;
-          var displayHedge = hedgeCount > 0 ? 1 : 0;
-          var displayQuotes = (unattributed && unattributed.length) ? 1 : 0;
-          var displayStats = (suspiciousStats && suspiciousStats.length) ? 1 : 0;
+
+          // compute counts for each signal (author may appear multiple times)
+          var authorMatchesAll = [];
+          try {
+            // Only treat "by ..." as a byline when it appears at the start of a line
+            // or start of the text to avoid matching in-sentence uses like "shot by a shirtless man".
+            var authorRxAll = /(?:^|\n)\s*by\s+([A-Z][^\r\n]{2,80})/gi;
+            var amg;
+            while ((amg = authorRxAll.exec(text)) !== null) { authorMatchesAll.push(amg[1].trim()); }
+          } catch(e) { authorMatchesAll = authorMatch ? [authorMatch] : []; }
+          var authorCount = authorMatchesAll.length;
+          var citationCount = uniqueUrls.length;
+          var hedgeCount = hedgeCount || 0; // already computed above
+          var quotesCount = (unattributed && unattributed.length) ? unattributed.length : 0;
+          var statsCount = (suspiciousStats && suspiciousStats.length) ? suspiciousStats.length : 0;
 
           html += '<div style="margin-top:8px; font-size:13px; color:#333; display:flex; flex-direction:column; gap:8px;">';
-          html += '<div><strong title="Detected bylines like \"By Name\">Author:</strong> ' + (authorMatch ? ('<span>' + authorMatch + '</span> <button class="btn small" data-signal="author' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button>') : '<em>Not found</em>') + '</div>';
-          html += '<div><strong title="Unique external links found in the article">Citation present:</strong> ' + displayCitation + ' <button class="btn small" data-signal="citations' + suffix + '" style="margin-left:8px; padding:3px 8px;">Show URLs</button></div>';
-          html += '<div><strong title="Hedging words (may/might/appears) that weaken claims">Hedging / Qualifiers:</strong> ' + displayHedge + ' <button class="btn small" data-signal="hedge' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
-          html += '<div><strong title="Quoted text that lacks nearby attribution (e.g., \"said\")">Unattributed quotes present:</strong> ' + displayQuotes + ' <button class="btn small" data-signal="quotes' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
-          html += '<div><strong title="Numbers/percentages that lack a nearby source or citation">Suspicious statistics present:</strong> ' + displayStats + ' <button class="btn small" data-signal="stats' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          var anySignal = false;
+          if (authorCount > 0) {
+            anySignal = true;
+            html += '<div><strong title="Detected bylines like \"By Name\">Author(s):</strong> ' + authorCount + ' <span style="margin-left:6px; color:#555;">(' + authorMatchesAll.map(function(a){ return a; }).join(', ') + ')</span> <button class="btn small" data-signal="author' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          }
+          if (citationCount > 0) {
+            anySignal = true;
+            html += '<div><strong title="Unique external links found in the article">Citations:</strong> ' + citationCount + ' <button class="btn small" data-signal="citations' + suffix + '" style="margin-left:8px; padding:3px 8px;">Show URLs</button></div>';
+          }
+          if (hedgeCount > 0) {
+            anySignal = true;
+            html += '<div><strong title="Hedging words (may/might/appears) that weaken claims">Hedging / Qualifiers:</strong> ' + hedgeCount + ' <button class="btn small" data-signal="hedge' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          }
+          if (quotesCount > 0) {
+            anySignal = true;
+            html += '<div><strong title="Quoted text that lacks nearby attribution (e.g., \"said\")">Unattributed quotes:</strong> ' + quotesCount + ' <button class="btn small" data-signal="quotes' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          }
+          if (statsCount > 0) {
+            anySignal = true;
+            html += '<div><strong title="Numbers/percentages that lack a nearby source or citation">Suspicious statistics:</strong> ' + statsCount + ' <button class="btn small" data-signal="stats' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
+          }
+          if (!anySignal) {
+            html += '<div><em>No content signals detected.</em></div>';
+          }
           html += '</div>';
           html += '</details>';
 
@@ -1917,10 +1979,14 @@
               } catch (e) { console.error('highlight failed', e); alert('Highlight failed'); }
             }
 
-            if (bAuthor && authorMatch) bAuthor.addEventListener('click', function(){
-              var rx = new RegExp('\\bby\\s+' + escRegex(authorMatch), 'gi');
-              showHighlightsFor(rx, 'sig-author');
-            });
+            if (bAuthor) {
+              bAuthor.addEventListener('click', function(){
+                var alt = (typeof authorMatchesAll !== 'undefined' && authorMatchesAll && authorMatchesAll.length) ? authorMatchesAll.map(function(a){ return escRegex(a); }).join('|') : (authorMatch ? escRegex(authorMatch) : null);
+                if (!alt) { alert('No author found'); return; }
+                var rx = new RegExp('\\bby\\s+(?:' + alt + ')', 'gi');
+                showHighlightsFor(rx, 'sig-author');
+              });
+            }
             if (bCite) bCite.addEventListener('click', function(){
               if (!uniqueUrls || !uniqueUrls.length) { alert('No URLs found in text'); return; }
               // build a regex that matches any of the URLs
