@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Aggie Times • Fake News Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
   <style>
     /* Reset & Base */
     *, *::before, *::after {
@@ -208,22 +209,16 @@
       border-bottom: 1px solid rgba(0,0,0,0.12);
     }
     .masthead {
-      color: #FDB827; /* gold fill */
-      font-family: 'Times New Roman', Times, serif;
+      color: #000; /* black text for masthead */
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       font-size: 72px; /* reduced from 96 to better match screenshot */
       font-weight: 900;
-      letter-spacing: 8px;
-      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-transform: none;
       margin: 8px 0 6px;
       text-align: center;
-      -webkit-text-stroke: 2px #000; /* black border */
-      /* blue accent around letters + subtle glow */
-      text-shadow:
-        0 2px 0 #002D74,
-        0 -2px 0 #002D74,
-        2px 0 0 #002D74,
-        -2px 0 0 #002D74,
-        0 0 6px rgba(0,0,0,0.12);
+      /* plain text: remove accents/outlines */
+      text-shadow: none;
     }
     .paper-tagline {
       margin-top: 6px;
@@ -1063,7 +1058,7 @@
         <div class="coffee-ring coffee-ring-2"></div>
         <div class="newspaper-header">
           <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
-          <h1 class="masthead">THE AGGIE TIMES</h1>
+          <h1 class="masthead">inCredibleAI</h1>
           <div class="paper-tagline">Verify Your News &mdash; Paste any article below and discover the truth</div>
           <div class="date-line">VOL. 1 • NO. 1 • <span id="currentDate"></span></div>
         </div>
@@ -1174,7 +1169,7 @@
         <div class="coffee-ring coffee-ring-2"></div>
         <div class="newspaper-header academic-header">
           <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
-          <h1 class="masthead">THE AGGIE TIMES</h1>
+          <h1 class="masthead">inCredibleAI</h1>
           <div class="paper-tagline">Academic Edition &mdash; Stricter verification for research and high-stakes fact-checking</div>
           <div class="academic-rule"></div>
           <div class="date-line">VOL. 1 • NO. 1 • <span id="currentDateBack"></span> &nbsp;•&nbsp; <span class="academic-badge">ACADEMIC EDITION</span></div>
