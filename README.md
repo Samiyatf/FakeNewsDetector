@@ -28,7 +28,14 @@ The project emphasizes not just model accuracy, but understanding failure modes 
 - End-to-end NLP pipeline (preprocessing → training → inference)  
 - Real-time prediction via API integration  
 - Evaluation across in-distribution and out-of-distribution data  
-- Explicit analysis of model weaknesses  
+- Explicit analysis of model weaknesses
+
+## How It Works
+
+- User inputs article text  
+- LSTM model processes sequence patterns  
+- RoBERTa model provides contextual prediction  
+- System compares outputs and returns final classification + confidence  
 
 ## Tech Stack
 
