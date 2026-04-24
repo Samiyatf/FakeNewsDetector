@@ -122,7 +122,7 @@ uvicorn main:app --reload
 - Samiya Fyffe — Product & Program Management, system design, code review, and UI direction  
 - Miles Brower — LSTM model development, training, and code review  
 - Dante Grante — RoBERTa integration and frontend development  
-- Temiloluwa Okelowo — Data preprocessing and dataset preparation  
+- Temiloluwa Okelowo — LSTM Testing, Data preprocessing and dataset preparation
 - Sharnae Roye — Frontend development  
 
 Advisor: Dr. Mulham Fawakherji  
