@@ -13,6 +13,11 @@ Two approaches were implemented and evaluated:
 
 The project emphasizes not just model accuracy, but understanding failure modes and real-world limitations.
 
+<p float="left">
+  <img src="https://github.com/user-attachments/assets/5bc447dd-bc58-4a0e-a4c3-8a8c915d4e41" width="48%" />
+  <img src="https://github.com/user-attachments/assets/d00083d3-7736-4319-b875-bcd8d3bd8daa" width="48%" />
+</p>
+
 ## Key Features
 
 - Binary classification of news articles (real vs fake)  
