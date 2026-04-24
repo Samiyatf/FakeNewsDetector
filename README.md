@@ -13,10 +13,12 @@ Two approaches were implemented and evaluated:
 
 The project emphasizes not just model accuracy, but understanding failure modes and real-world limitations.
 
+### Input Interface
 <p align="center">
   <img src="https://github.com/user-attachments/assets/5bc447dd-bc58-4a0e-a4c3-8a8c915d4e41" width="700" />
 </p>
 
+### Model Output
 <p align="center">
   <img src="https://github.com/user-attachments/assets/d00083d3-7736-4319-b875-bcd8d3bd8daa" width="700" />
 </p>
