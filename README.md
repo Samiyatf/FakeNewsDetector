@@ -11,7 +11,7 @@ Two approaches were implemented and evaluated:
 - A custom-trained LSTM model for pattern-based classification  
 - A RoBERTa-based API for context-aware inference  
 
-The project emphasizes not just model accuracy, but understanding failure modes and real-world limitations.
+**Model performance dropped from 98% on training data to ~81% on unseen AI-generated articles, highlighting real-world generalization challenges.**
 
 ### Input Interface
 <p align="center">
