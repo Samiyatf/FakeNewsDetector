@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Aggie Times • Fake News Detector</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <title>inCredibleAI • Fake News Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     /* Reset & Base */
     *, *::before, *::after {
@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       background: #f5f1e8;
       color: #1a1a1a;
       overflow-x: hidden;
@@ -97,9 +97,10 @@
       letter-spacing: 2px;
       padding: 6px 14px;
       margin-left: 16px;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       text-transform: uppercase;
       border: 2px solid #002D74;
+      border-radius: 6px;
       box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
       white-space: nowrap;
       z-index: 2;
@@ -438,7 +439,7 @@
       padding: 20px;
       font-size: 16px;
       line-height: 1.8;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       color: #1a1a1a;
       background: #fff;
       border: 2px solid #ccc;
@@ -455,7 +456,7 @@
       left: 0; top: 0;
       pointer-events: auto; /* allow scrolling & Next button clicks */
       overflow: auto;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       font-size: 16px;
       line-height: 1.8;
       color: transparent; /* real text comes from underlying textarea; marks will show background */
@@ -483,11 +484,12 @@
     .highlight-layer mark.sig-hedge { background: rgba(255,165,0,0.25); }
     .highlight-layer mark.sig-author { background: rgba(40,167,69,0.2); }
     .highlight-layer mark.sig-citations { background: rgba(0,45,116,0.18); }
+    .highlight-layer mark.sig-title { background: rgba(123, 63, 191, 0.22); }
 
     .highlight-next {
       position: absolute;
       right: 14px;
-      top: 8px;
+      top: 2px;
       z-index: 6;
       pointer-events: auto;
       background: rgba(0,0,0,0.7);
@@ -515,12 +517,13 @@
       padding: 15px 40px;
       font-size: 18px;
       font-weight: 900;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       text-transform: uppercase;
       letter-spacing: 3px;
       color: #FDB827;
       background: #002D74;
       border: 3px solid #000;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.3s ease;
       position: relative;
@@ -550,8 +553,8 @@
 
     .info-box {
       padding: 20px;
-      border: 2px solid #000;
-      background: #f9f9f9;
+      border: 1.5px solid #000;
+      background: #fff;
     }
 
     .info-box h3 {
@@ -562,7 +565,7 @@
       letter-spacing: 2px;
       border-bottom: 2px solid #000;
       padding-bottom: 6px;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
     }
 
     .info-box p {
@@ -817,7 +820,7 @@
     }
 
     /* ===== COFFEE RING STAIN ===== */
-    .coffee-ring {
+    /*.coffee-ring {
       position: absolute;
       width: 90px;
       height: 90px;
@@ -854,7 +857,7 @@
       transform: rotate(8deg);
       border-color: rgba(130, 90, 30, 0.07);
       opacity: 0.7;
-    }
+    }*/
 
     /* ===== NEWSPAPER FOOTER ===== */
     .newspaper-footer {
@@ -956,8 +959,39 @@
     .classifieds-item strong {
       display: block;
       font-size: 10px;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    .check-item {
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .check-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .check-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+    }
+
+    .check-desc {
+      margin: 0;
+      font-size: 11px;
+      color: #333;
+      font-style: normal;
+      line-height: 1.6;
     }
 
     /* ===== STOP THE PRESSES TOAST ===== */
@@ -968,7 +1002,7 @@
       transform: translateX(-50%) translateY(-20px);
       background: #1a1a1a;
       color: #fff;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
       font-size: 13px;
       font-weight: 900;
       letter-spacing: 3px;
@@ -1034,7 +1068,7 @@
     <label class="mode-switch">
       <input type="checkbox" id="academicMode" />
       <span class="mode-slider"></span>
-      <span class="mode-label">Academic mode — turn page</span>
+      <span class="mode-label">Academic Mode</span>
     </label>
   </div>
 
@@ -1057,7 +1091,6 @@
         <div class="coffee-ring coffee-ring-1"></div>
         <div class="coffee-ring coffee-ring-2"></div>
         <div class="newspaper-header">
-          <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
           <h1 class="masthead">inCredibleAI</h1>
           <div class="paper-tagline">Verify Your News &mdash; Paste any article below and discover the truth</div>
           <div class="date-line">VOL. 1 • NO. 1 • <span id="currentDate"></span></div>
@@ -1091,7 +1124,7 @@
                   <span class="btn-text">ANALYZE ARTICLE</span>
                   <span class="btn-loading" style="display:none;">ANALYZING...</span>
                 </button>
-                <button id="clearBtn" class="btn" style="padding:10px 14px; font-weight:700; background:#777; color:#fff; border:2px solid #000; cursor:pointer; border-radius:6px;">CLEAR</button>
+                <button id="clearBtn" class="btn" style="padding:10px 14px; font-weight:700; background:#777; color:#fff; border:none; cursor:pointer; border-radius:6px;">CLEAR</button>
               </div>
             </div>
           </div>
@@ -1146,7 +1179,7 @@
             Corrections: Backpropagation
           </div>
           <div class="foot-col" style="text-align:center;">
-            <strong>The Aggie Times</strong>
+            <strong>inCredibleAI</strong>
             Printed by Aggie Press, A&amp;T Campus<br>
             <em>Est. 2025 • Truth Above All</em><br>
             <br>
@@ -1168,7 +1201,6 @@
         <div class="coffee-ring coffee-ring-1"></div>
         <div class="coffee-ring coffee-ring-2"></div>
         <div class="newspaper-header academic-header">
-          <img src="ncat-logo.png" alt="NCAT Aggies" class="corner-logo">
           <h1 class="masthead">inCredibleAI</h1>
           <div class="paper-tagline">Academic Edition &mdash; Stricter verification for research and high-stakes fact-checking</div>
           <div class="academic-rule"></div>
@@ -1216,7 +1248,7 @@
                   <span class="btn-text">ANALYZE (ACADEMIC)</span>
                   <span class="btn-loading" style="display:none;">ANALYZING...</span>
                 </button>
-                <button id="clearBtnAcademic" class="btn" style="padding:10px 14px; font-weight:700; background:#145214; color:#fff; border:2px solid #000; cursor:pointer; border-radius:6px;">CLEAR</button>
+                <button id="clearBtnAcademic" class="btn" style="padding:10px 14px; font-weight:700; background:#777; color:#fff; border:none; cursor:pointer; border-radius:6px;">CLEAR</button>
               </div>
             </div>
           </div>
@@ -1262,10 +1294,10 @@
             Verification Method: LLM + LSTM<br>
             Evidence Threshold: Strict<br>
             Confidence Required: 75%+<br>
-            Last Model Update: 2025
+            Last Model Update: 2026
           </div>
           <div class="foot-col" style="text-align:center;">
-            <strong>The Aggie Times — Academic Edition</strong>
+            <strong>inCredibleAI — Academic Edition</strong>
             Printed by Aggie Press, A&amp;T Campus<br>
             <em>Est. 2025 • Truth Above All</em><br>
             <br>
@@ -1303,7 +1335,7 @@
       "BREAKING: SCREENSHOT OF TWEET USED AS PRIMARY SOURCE FOR SECOND TIME THIS WEEK",
       "AREA NEWSPAPER FACT-CHECKS SELF, FINDS MIXED RESULTS",
       "EXPERTS WARN OF DANGEROUS NEW DISORDER: READING ONLY THE HEADLINE",
-      "AGGIE TIMES FAKE NEWS DETECTOR ACHIEVES SENTIENCE, STILL RECOMMENDS CITING YOUR SOURCES",
+      "inCredibleAI FAKE NEWS DETECTOR ACHIEVES SENTIENCE, STILL RECOMMENDS CITING YOUR SOURCES",
       "MAN WHO 'DID HIS OWN RESEARCH' REPORTEDLY GOOGLED FOR 4 MINUTES",
       "MISINFORMATION TRAVELS AROUND WORLD BEFORE TRUTH LACES UP BOOTS — AGAIN",
       "LOCAL GRANDMA SHARES ARTICLE FROM 'CHANNEL45NEWSDAILYINFO.NET' — WE'RE ON THE CASE",
@@ -1410,7 +1442,7 @@
         serverBanner.style.display = 'block';
         serverBanner.textContent = msg;
         setTimeout(function(){ serverBanner.style.display = 'none'; }, 6000);
-      } catch (e) { console.log('banner failed', e); }
+      } catch (e) { /* banner display failed silently */ }
     }
 
     function animatePageFlip(toAcademic) {
@@ -1487,12 +1519,16 @@
 
       var lines = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
       var keep = [];
+      var seenLines = {}; // track duplicates to deduplicate lazy-loaded content
       var skipWords = ['related', 'advert', 'sponsored', 'share', 'comments', 'read more', 'see also', 'related articles'];
       for (var i=0;i<lines.length;i++){
         var l = lines[i];
         var ll = l.toLowerCase();
+        // skip duplicate lines (helps with repeated content from CBS-style lazy-loaded DOM)
+        if (seenLines[ll]) continue;
+        seenLines[ll] = true;
         // skip short noisy lines
-        if (l.length < 30) continue;
+        if (l.length < 20) continue;
         // skip boilerplate lines / ad indicators
         var skip = false;
         for (var k=0;k<skipWords.length;k++){ if (ll.indexOf(skipWords[k]) !== -1) { skip = true; break; } }
@@ -1504,7 +1540,7 @@
         // remove inline/parenthetical captions like "(Photo: ...)", "— Photo by ...", "(Image: ...)"
         if (/\(?(?:photo|image|picture|caption|photograph)[^)]*\)?/i.test(l)) continue;
 
-        // Heuristic: remove headline/teaser-like lines
+        // Heuristic: remove headline/teaser-like lines only if they lack punctuation AND are short
         //  - many Title Case words, short length, no sentence-ending punctuation
         var words = l.split(/\s+/).filter(Boolean);
         var titleCaseCount = 0;
@@ -1512,14 +1548,25 @@
         var titleRatio = words.length ? (titleCaseCount / words.length) : 0;
         var hasCamel = /[a-z][A-Z]/.test(l); // e.g., 'Morning VitalityNerve'
         var adKeywords = /\b(costco|shoppers|find|facelift|buy|deal|promo|sponsored|subscribe|subscribe|bottle|vitality|nerve)\b/i;
-        if ((titleRatio > 0.6 && l.length < 120 && !/[.!?]\s*$/.test(l)) || hasCamel || adKeywords.test(l)) continue;
+        // Only skip if headline-like AND lacks punctuation (keep quoted material even if title-cased)
+        if ((titleRatio > 0.65 && l.length < 100 && !/[.!?:"]\s*$/.test(l) && !/^"/.test(l)) || hasCamel || adKeywords.test(l)) continue;
 
         keep.push(l);
       }
 
       if (keep.length === 0) {
         // fallback: return original cleaned text but stripped of tiny lines
-        return lines.join('\n\n');
+        // and still apply deduplication
+        var dedupFallback = [];
+        var dedupSeen = {};
+        for (var i=0; i<lines.length; i++) {
+          var ll = lines[i].toLowerCase();
+          if (!dedupSeen[ll]) {
+            dedupSeen[ll] = true;
+            dedupFallback.push(lines[i]);
+          }
+        }
+        return dedupFallback.join('\n\n');
       }
       return keep.join('\n\n');
     }
@@ -1534,7 +1581,13 @@
         var start = ta.selectionStart || 0;
         var end = ta.selectionEnd || 0;
         var val = ta.value || '';
-        ta.value = val.slice(0, start) + cleaned + val.slice(end);
+        if (start === 0 && end === 0) {
+          // Pasting into empty textarea: replace all
+          ta.value = cleaned;
+        } else {
+          // Pasting into existing text: insert at cursor
+          ta.value = val.slice(0, start) + cleaned + val.slice(end);
+        }
         var newPos = start + cleaned.length;
         ta.selectionStart = ta.selectionEnd = newPos;
         // trigger input handlers to sync academic/regular fields
@@ -1626,10 +1679,30 @@
 
       var text = textarea.value.trim();
       if (!text) {
-        alert('Please paste an article to analyze');
+        displayBanner('Please paste an article before analyzing.', 'warn');
         textarea.focus();
         return;
       }
+
+      // Deterministic mock mode: same article text => same result while backend is offline.
+      function hashString32(input) {
+        var h = 2166136261;
+        for (var i = 0; i < input.length; i++) {
+          h ^= input.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0) || 1;
+      }
+      function createSeededRng(seed) {
+        var state = seed >>> 0;
+        return function() {
+          state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+          return state / 4294967296;
+        };
+      }
+      var normalizedText = text.replace(/\s+/g, ' ').trim().toLowerCase();
+      var rngSeed = hashString32((isAcademic ? 'academic|' : 'regular|') + normalizedText);
+      var rng = createSeededRng(rngSeed);
 
       btn.disabled = true;
       btn.querySelector('.btn-text').style.display = 'none';
@@ -1646,7 +1719,7 @@
       setTickerAnalyzing();
 
       setTimeout(function() {
-        var isVerified = Math.random() > 0.5;
+        var isVerified = rng() > 0.5;
         inkSplatters.classList.remove('active');
         resultSection.classList.add('show');
         resultBannerText.textContent = isVerified ? '✓ VERIFIED — This article is authentic' : '✗ FAKE — This article is not credible';
@@ -1667,15 +1740,36 @@
 
         // Build richer result details: confidence bar, LSTM signals, LLM explanation, claims to double-check
         var confBase = isAcademic ? 70 : 60;
-        var confidence = Math.min(99, Math.floor(confBase + Math.random() * (100 - confBase)));
+        var confidence = Math.min(99, Math.floor(confBase + rng() * (100 - confBase)));
+
+        // Title detection: treat first non-empty line as headline when multiple lines are provided.
+        var nonEmptyLines = text.split(/\r?\n/).map(function(line){ return line.trim(); }).filter(Boolean);
+        var titleText = '';
+        var bodyText = text;
+        if (nonEmptyLines.length > 1 && nonEmptyLines[0].length <= 180) {
+          titleText = nonEmptyLines[0];
+          bodyText = nonEmptyLines.slice(1).join('\n');
+        }
+        var titleStartIndex = titleText ? text.toLowerCase().indexOf(titleText.toLowerCase()) : -1;
+        if (titleStartIndex < 0 && titleText) titleStartIndex = 0;
+
+        // Headline-specific risk signals
+        var titleSignals = [];
+        if (titleText) {
+          var titleLetters = (titleText.match(/[A-Za-z]/g) || []).length;
+          var titleCaps = (titleText.match(/[A-Z]/g) || []).length;
+          var capRatio = titleLetters ? (titleCaps / titleLetters) : 0;
+          if (titleLetters >= 8 && capRatio > 0.62) titleSignals.push('all caps');
+          if (/!{2,}|\?{2,}|[!?]{3,}/.test(titleText)) titleSignals.push('excess punctuation');
+          if (/\b(shocking|bombshell|you won't believe|they don't want you to know|secret|exposed|stuns|hoax|miracle)\b/i.test(titleText)) titleSignals.push('sensational language');
+          if (/\b(what happens next|the truth about|gone wrong|revealed|caught on camera|this is why)\b/i.test(titleText)) titleSignals.push('clickbait pattern');
+        }
+        var titleRiskCount = titleSignals.length;
+        var titleRiskLabel = titleRiskCount >= 3 ? 'High' : (titleRiskCount === 2 ? 'Moderate' : (titleRiskCount === 1 ? 'Low' : 'None'));
 
         // Simple claim extraction (first few sentence fragments)
-        var sentences = text.split(/\.|\n|\?|!/).map(function(s){ return s.trim(); }).filter(Boolean);
+        var sentences = bodyText.split(/\.|\n|\?|!/).map(function(s){ return s.trim(); }).filter(Boolean);
         var claims = sentences.slice(0,3).map(function(s){ return s.length > 140 ? s.slice(0,137) + '...' : s; });
-
-        var lstmScore = (0.4 + Math.random() * 0.5).toFixed(2);
-        var lstmSignals = ['stylistic drift','clickbait headline','hedging language','low source density'];
-        var chosenSignals = lstmSignals.sort(function(){return 0.5 - Math.random();}).slice(0,2).join(', ');
 
         // Additional content-signal heuristics
         var authorMatch = null;
@@ -1696,8 +1790,9 @@
         var hedgeCount = hedgeMatches.length;
 
         // Suspicious statistics: improved heuristic
-        // Match longer numbers (years/large counts) first, then grouped numbers/percentages
-        var statRx = /\b\d{4,}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b|\b\d{1,3}(?:,\d{3})*(?:\.\d+)?(?:\s?%| percent)?\b/g;
+        // Use a lookahead instead of a trailing word boundary so values like "99%" are captured fully.
+        var statRx = /\b(?:\d{1,3}(?:,\d{3})+|\d{1,})(?:\.\d+)?(?:\s?(?:%|percent))?(?=\s|[.,;:!?)]|$)/g;
+        var statUnitRx = /^\s*(people|deaths|cases|votes|dollars|usd|km|kilometers|miles|kg|tons|million|billion|thousand|k)\b/i;
         var suspiciousStats = [];
         var statMatch;
         while ((statMatch = statRx.exec(text)) !== null) {
@@ -1721,23 +1816,27 @@
           if (/\bin\s+\d{4}\b|\byear\s+\d{4}\b/.test(contextLower)) continue;
 
           // 3) Prefer percentages or numbers with explicit units nearby
-          var after = text.substring(idx + s.length, Math.min(text.length, idx + s.length + 40)).toLowerCase();
+          var afterRaw = text.substring(idx + s.length, Math.min(text.length, idx + s.length + 40));
+          var after = afterRaw.toLowerCase();
           var before = text.substring(Math.max(0, idx-20), idx).toLowerCase();
-          var isPercent = /%|\bpercent\b/.test((s + ' ' + after));
+          var isPercent = /%|\bpercent\b/.test(s);
           var unitMatch = /\b(people|deaths|cases|votes|dollars|usd|km|kilometers|miles|kg|tons|million|billion|thousand|k\b)\b/.test(after + ' ' + before);
+          var unitSuffixMatch = afterRaw.match(statUnitRx);
+          var statText = s;
+          if (!isPercent && unitSuffixMatch) statText += unitSuffixMatch[0];
 
           // 4) Check for nearby explicit source markers (if present, it's less suspicious)
           var hasSourceNearby = /source|according|study|survey|report|cdc|who|doi|journal|http|https|www\.|doi:/.test(contextLower);
 
           // If it's a percent and there's no nearby source, mark as suspicious immediately.
           if (isPercent && !hasSourceNearby) {
-            suspiciousStats.push({text: s, index: idx});
+            suspiciousStats.push({text: statText.trim(), index: idx});
             continue;
           }
 
           // Decide: mark suspicious only if it has unit and lacks source nearby
           if (unitMatch && !hasSourceNearby) {
-            suspiciousStats.push({text: s, index: idx});
+            suspiciousStats.push({text: statText.trim(), index: idx});
           }
           // otherwise skip (do not add plain numbers like small integers or years)
         }
@@ -1755,6 +1854,13 @@
         var llmExplanation = isVerified
           ? 'The LLM explanation finds supporting context and corroborating sources for the article claims.'
           : 'The LLM notes unsupported assertions, factual inconsistencies, and missing primary sources.';
+        var llmDisclosure = 'AI-generated guidance only. Treat this as a pointer for what to verify next, not a final fact-check decision.';
+        var confidenceDescriptor = confidence >= 85
+          ? 'High confidence'
+          : (confidence >= 70 ? 'Moderate confidence' : 'Low confidence');
+        var confidenceGuidance = isVerified
+          ? (confidence >= 85 ? 'Strong support found in this scan.' : 'Looks credible, but still worth a quick manual check.')
+          : (confidence >= 85 ? 'Several strong warning signs were detected.' : 'Possible issues found; manual review is recommended.');
 
         var suffix = isAcademic ? 'Academic' : '';
         var html = '';
@@ -1765,7 +1871,8 @@
           html += '<div style="background:#eee; border:1px solid #ddd; height:14px; border-radius:8px; overflow:hidden;">';
           html += '<div id="confidenceFill' + suffix + '" style="height:100%; width:' + confidence + '%; background:' + (isVerified ? '#28a745' : '#c41e3a') + '; transition:width:600ms ease;"></div>';
           html += '</div>';
-          html += '<div style="font-size:13px; color:#333; margin-top:6px;">' + confidence + '%</div>';
+          html += '<div style="font-size:13px; color:#333; margin-top:6px;">' + confidence + '% <strong style="margin-left:6px;">' + confidenceDescriptor + '</strong></div>';
+          html += '<div style="font-size:12px; color:#666; margin-top:4px;">' + confidenceGuidance + '</div>';
           html += '</div>';
 
           // (removed inline LSTM summary — detailed panels below)
@@ -1816,16 +1923,54 @@
             anySignal = true;
             html += '<div><strong title="Numbers/percentages that lack a nearby source or citation">Suspicious statistics:</strong> ' + statsCount + ' <button class="btn small" data-signal="stats' + suffix + '" style="margin-left:8px; padding:3px 8px;">Highlight</button></div>';
           }
+          if (titleText) {
+            anySignal = true;
+            html += '<div><strong title="Headline is evaluated separately from body text">Headline risk:</strong> ' + titleRiskLabel + ' (' + titleRiskCount + ' signal' + (titleRiskCount === 1 ? '' : 's') + ') <span style="margin-left:6px; color:#666;">See LLM Explanation for why.</span> <button class="btn small" data-signal="title' + suffix + '" style="margin-left:8px; padding:3px 8px;">Inspect title</button></div>';
+          }
           if (!anySignal) {
-            html += '<div><em>No content signals detected.</em></div>';
+            html += '<div><em>No strong content signals were flagged in this scan. The article still benefits from manual source checking.</em></div>';
           }
           html += '</div>';
           html += '</details>';
+
+          // Build LLM talking points from the same detected signals so this panel is always useful.
+          var llmPoints = [];
+          if (isVerified) {
+            if (citationCount > 0) llmPoints.push('Found ' + citationCount + ' unique citation link' + (citationCount === 1 ? '' : 's') + ', which supports traceability.');
+            if (authorCount > 0) llmPoints.push('Detected byline information, adding accountability to the article.');
+            if (titleText) {
+              if (titleRiskCount > 0) llmPoints.push('Headline-specific checks flagged ' + titleRiskCount + ' signal' + (titleRiskCount === 1 ? '' : 's') + ': ' + titleSignals.join(', ') + '. Compare the headline tone with the body evidence.');
+              else llmPoints.push('Headline appears neutral and low-risk based on title-specific checks.');
+            }
+            if (hedgeCount > 0) llmPoints.push('Some hedging language is present; review whether key conclusions stay evidence-based.');
+            if (quotesCount === 0 && statsCount === 0) llmPoints.push('No unattributed quotes or suspicious statistics were detected in the text scan.');
+          } else {
+            if (citationCount === 0) llmPoints.push('No external citation links detected, making verification harder.');
+            if (titleText) {
+              if (titleRiskCount > 0) llmPoints.push('Headline risk is ' + titleRiskLabel.toLowerCase() + ' due to ' + titleSignals.join(', ') + '. This can attract clicks even when evidence is weak.');
+              else llmPoints.push('Headline itself appears neutral; risk signals are coming more from body-level checks.');
+            }
+            if (quotesCount > 0) llmPoints.push('Found ' + quotesCount + ' potentially unattributed quote' + (quotesCount === 1 ? '' : 's') + '.');
+            if (statsCount > 0) llmPoints.push('Found ' + statsCount + ' statistic claim' + (statsCount === 1 ? '' : 's') + ' without nearby source markers.');
+            if (hedgeCount > 1) llmPoints.push('Frequent qualifiers may indicate uncertainty around concrete claims.');
+          }
+          if (claims.length) llmPoints.push('Extracted ' + claims.length + ' claim' + (claims.length === 1 ? '' : 's') + ' for manual source checking below.');
 
           // LLM details
           html += '<details id="detailsLLM' + suffix + '" style="background:#f7fbff; border:1px solid #e6f0ff; padding:8px; border-radius:6px;">';
           html += '<summary style="font-weight:900; cursor:pointer;">LLM Explanation</summary>';
           html += '<div id="llmCard' + suffix + '" style="margin-top:8px; font-size:13px;">' + llmExplanation + '</div>';
+          if (llmPoints.length) {
+            html += '<ul style="margin:8px 0 0 18px; font-size:13px; color:#333;">';
+            for (var lp=0; lp<llmPoints.length; lp++) html += '<li>' + llmPoints[lp] + '</li>';
+            html += '</ul>';
+          } else {
+            html += '<div style="margin-top:8px; font-size:13px;"><em>No additional explanation points were generated from this scan. Use the signal and claim panels to guide manual review.</em></div>';
+          }
+          html += '<details style="margin-top:8px; background:#fff; border:1px dashed #d7e6ff; padding:6px 8px; border-radius:6px;">';
+          html += '<summary style="font-weight:700; cursor:pointer; font-size:12px;">Disclosure</summary>';
+          html += '<div style="margin-top:6px; font-size:12px; color:#465;">' + llmDisclosure + '</div>';
+          html += '</details>';
           html += '</details>';
 
           // Claims details
@@ -1835,7 +1980,7 @@
         if (claims.length) {
           for (var i=0;i<claims.length;i++) html += '<li>' + claims[i] + '</li>';
         } else {
-          html += '<li>No clear claims detected — check quoted assertions and statistics.</li>';
+          html += '<li>No major standalone claims were automatically extracted. Review quoted statements, statistics, and headline-level assertions manually.</li>';
         }
           html += '</ol>';
           html += '</details>';
@@ -1848,10 +1993,15 @@
           html += '</div>';
 
         // append feedback controls (agree/disagree) and download fallback
-        var feedbackHtml = '<div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">';
-        feedbackHtml += '<button id="btnAgree' + suffix + '" class="btn" style="background:#28a745; padding:8px 12px;">I agree</button>';
-        feedbackHtml += '<button id="btnDisagree' + suffix + '" class="btn" style="background:#c41e3a; padding:8px 12px;">I disagree</button>';
+        var feedbackHtml = '<div style="margin-top:14px; padding:10px; border:1px solid #e4e8ef; border-radius:8px; background:#fafcff;">';
+        feedbackHtml += '<div style="font-weight:800; color:#1f2a44;">Would you like to leave feedback on this result?</div>';
+        feedbackHtml += '<div style="font-size:12px; color:#5a6577; margin-top:4px;">Your response helps improve future classifications and explanations.</div>';
+        feedbackHtml += '<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">';
+        feedbackHtml += '<button id="btnAgree' + suffix + '" class="btn" style="background:#28a745; padding:8px 12px;">Yes, looks right</button>';
+        feedbackHtml += '<button id="btnDisagree' + suffix + '" class="btn" style="background:#c41e3a; padding:8px 12px;">Needs review</button>';
         feedbackHtml += '<button id="btnDownloadFeedback' + suffix + '" class="btn" style="background:#444; padding:8px 12px;">Download feedback</button>';
+        feedbackHtml += '</div>';
+        feedbackHtml += '<div id="feedbackStatus' + suffix + '" style="font-size:12px; color:#4e5d78; margin-top:8px; min-height:16px;">No feedback submitted yet.</div>';
         feedbackHtml += '</div>';
 
         resultDetails.innerHTML = html + (isAcademic ? '<p><em>Academic mode: stricter verification applied.</em></p>' : '') + feedbackHtml;
@@ -1862,7 +2012,7 @@
             // Attempt to POST to backend /feedback; fallback to localStorage if that fails
             fetch('/feedback', {
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-            }).then(function(resp){ if (!resp.ok) throw new Error('bad resp'); return resp.json(); }).then(function(j){ console.log('feedback saved', j); displayBanner('Feedback saved', 'success'); }).catch(function(){
+            }).then(function(resp){ if (!resp.ok) throw new Error('bad resp'); return resp.json(); }).then(function(j){ displayBanner('Feedback saved', 'success'); }).catch(function(){
               // fallback: save to localStorage array
               var key = 'fakenews_feedback';
               var arr = JSON.parse(localStorage.getItem(key) || '[]');
@@ -1875,16 +2025,29 @@
           var btnA = document.getElementById('btnAgree' + suffix);
           var btnD = document.getElementById('btnDisagree' + suffix);
           var btnDL = document.getElementById('btnDownloadFeedback' + suffix);
-          if (btnA) btnA.addEventListener('click', function(){ sendFeedback({item_type:'article', item_text:text, action:'agree', label: isVerified ? 'agree_verified' : 'agree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}}); });
-          if (btnD) btnD.addEventListener('click', function(){ sendFeedback({item_type:'article', item_text:text, action:'disagree', label: isVerified ? 'disagree_verified' : 'disagree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}}); });
+          var feedbackStatusEl = document.getElementById('feedbackStatus' + suffix);
+          var setFeedbackStatus = function(msg, tone) {
+            if (!feedbackStatusEl) return;
+            feedbackStatusEl.textContent = msg;
+            feedbackStatusEl.style.color = tone === 'ok' ? '#1e6f3d' : (tone === 'warn' ? '#8a5a00' : '#4e5d78');
+          };
+          if (btnA) btnA.addEventListener('click', function(){
+            sendFeedback({item_type:'article', item_text:text, action:'agree', label: isVerified ? 'agree_verified' : 'agree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}});
+            setFeedbackStatus('Thanks. You marked this result as accurate.', 'ok');
+          });
+          if (btnD) btnD.addEventListener('click', function(){
+            sendFeedback({item_type:'article', item_text:text, action:'disagree', label: isVerified ? 'disagree_verified' : 'disagree_unverified', metadata:{mode: isAcademic ? 'academic' : 'regular'}});
+            setFeedbackStatus('Thanks. You flagged this result for review.', 'warn');
+          });
           if (btnDL) btnDL.addEventListener('click', function(){
             var key = 'fakenews_feedback'; var arr = JSON.parse(localStorage.getItem(key) || '[]');
-            if (!arr.length) { alert('No local feedback to download'); return; }
+            if (!arr.length) { displayBanner('No local feedback to download yet.', 'warn'); return; }
             var csv = 'timestamp,item_type,item_text,action,label,claim_index,metadata\n';
             arr.forEach(function(r){ csv += (r.ts||'') + ',' + '"' + (r.item_type||'') + '","' + (r.item_text||'').replace(/"/g,'""') + '","' + (r.action||'') + '","' + (r.label||'') + '","' + (r.claim_index||'') + '","' + JSON.stringify(r.metadata||{}) + '"\n'; });
             var blob = new Blob([csv], {type:'text/csv'});
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a'); a.href = url; a.download = 'feedback_local.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            setFeedbackStatus('Feedback exported to CSV.', 'ok');
           });
 
           // attach claim action handlers
@@ -1907,6 +2070,7 @@
             var bHedge = parent.querySelector('[data-signal="hedge' + suffix + '"]');
             var bQuotes = parent.querySelector('[data-signal="quotes' + suffix + '"]');
             var bStats = parent.querySelector('[data-signal="stats' + suffix + '"]');
+            var bTitle = parent.querySelector('[data-signal="title' + suffix + '"]');
 
             // Highlight-all overlay implementation: show all occurrences with an overlay mirror and a small Next button
             function escapeHtml(s) { return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1914,19 +2078,47 @@
             function showHighlightsFor(pattern, markClass, opts) {
               try {
                 var boxEl = isAcademic ? document.getElementById('articleBoxAcademic') : document.getElementById('articleBox');
-                if (!boxEl) { alert('Unable to show highlights'); return; }
+                if (!boxEl) { displayBanner('Unable to show highlights.', 'error'); return; }
                 // remove existing overlay
                 var existing = boxEl.querySelector('.highlight-layer'); if (existing) existing.remove();
                 var existingNext = boxEl.querySelector('.highlight-next'); if (existingNext) existingNext.remove();
 
                 var text = ta.value || '';
                 var regex = pattern;
-                if (!regex) { alert('No pattern provided'); return; }
-                // produce highlighted HTML by replacing matches with <mark>
-                var matches = text.match(regex);
-                if (!matches || !matches.length) { alert('No matches found'); return; }
-
-                var highlighted = text.replace(regex, function(m){ return '<mark class="' + (markClass||'') + '">' + escapeHtml(m) + '</mark>'; });
+                var highlighted = '';
+                var hasRanges = opts && Array.isArray(opts.ranges) && opts.ranges.length;
+                if (hasRanges) {
+                  var ranges = opts.ranges
+                    .map(function(r){
+                      var start = Math.max(0, Number(r.index) || 0);
+                      var end = Math.min(text.length, start + Math.max(0, Number(r.length) || 0));
+                      return { start: start, end: end };
+                    })
+                    .filter(function(r){ return r.end > r.start; })
+                    .sort(function(a,b){ return a.start - b.start; });
+                  if (!ranges.length) { displayBanner('No matches found for that signal.', 'warn'); return; }
+                  // Merge overlaps so HTML stays valid and each region highlights once.
+                  var merged = [];
+                  for (var ri=0; ri<ranges.length; ri++) {
+                    var cur = ranges[ri];
+                    if (!merged.length || cur.start > merged[merged.length-1].end) merged.push({ start: cur.start, end: cur.end });
+                    else merged[merged.length-1].end = Math.max(merged[merged.length-1].end, cur.end);
+                  }
+                  var cursor = 0;
+                  for (var mi=0; mi<merged.length; mi++) {
+                    var mr = merged[mi];
+                    highlighted += escapeHtml(text.slice(cursor, mr.start));
+                    highlighted += '<mark class="' + (markClass||'') + '">' + escapeHtml(text.slice(mr.start, mr.end)) + '</mark>';
+                    cursor = mr.end;
+                  }
+                  highlighted += escapeHtml(text.slice(cursor));
+                } else {
+                  if (!regex) { displayBanner('No pattern provided for highlight.', 'error'); return; }
+                  // produce highlighted HTML by replacing matches with <mark>
+                  var matches = text.match(regex);
+                  if (!matches || !matches.length) { displayBanner('No matches found for that signal.', 'warn'); return; }
+                  highlighted = text.replace(regex, function(m){ return '<mark class="' + (markClass||'') + '">' + escapeHtml(m) + '</mark>'; });
+                }
 
                 // build overlay and position it exactly over the textarea
                 var overlay = document.createElement('div'); overlay.className = 'highlight-layer';
@@ -1976,19 +2168,19 @@
                   ta._onScroll = function() { try { overlay.scrollTop = ta.scrollTop; } catch (e){} };
                   ta.addEventListener('scroll', ta._onScroll);
                 }
-              } catch (e) { console.error('highlight failed', e); alert('Highlight failed'); }
+              } catch (e) { console.error('highlight failed', e); displayBanner('Highlight failed — try re-analyzing the article.', 'error'); }
             }
 
             if (bAuthor) {
               bAuthor.addEventListener('click', function(){
                 var alt = (typeof authorMatchesAll !== 'undefined' && authorMatchesAll && authorMatchesAll.length) ? authorMatchesAll.map(function(a){ return escRegex(a); }).join('|') : (authorMatch ? escRegex(authorMatch) : null);
-                if (!alt) { alert('No author found'); return; }
+                if (!alt) { displayBanner('No author byline detected in the article.', 'warn'); return; }
                 var rx = new RegExp('\\bby\\s+(?:' + alt + ')', 'gi');
                 showHighlightsFor(rx, 'sig-author');
               });
             }
             if (bCite) bCite.addEventListener('click', function(){
-              if (!uniqueUrls || !uniqueUrls.length) { alert('No URLs found in text'); return; }
+              if (!uniqueUrls || !uniqueUrls.length) { displayBanner('No citation URLs found in the article.', 'warn'); return; }
               // build a regex that matches any of the URLs
               var alt = uniqueUrls.map(function(u){ return escRegex(u); }).join('|');
               var rx = new RegExp('(' + alt + ')', 'gi');
@@ -2001,9 +2193,15 @@
               showHighlightsFor(rx, 'sig-quotes');
             });
             if (bStats && suspiciousStats.length) bStats.addEventListener('click', function(){
-              var alt = suspiciousStats.map(function(s){ return escRegex(s.text); }).join('|');
-              var rx = new RegExp('(' + alt + ')', 'gi');
-              showHighlightsFor(rx, 'sig-stats');
+              var ranges = suspiciousStats
+                .filter(function(s){ return s && typeof s.index === 'number' && s.text; })
+                .map(function(s){ return { index: s.index, length: s.text.length }; });
+              if (!ranges.length) { displayBanner('No suspicious statistics were flagged.', 'warn'); return; }
+              showHighlightsFor(null, 'sig-stats', { ranges: ranges });
+            });
+            if (bTitle) bTitle.addEventListener('click', function(){
+              if (!titleText) { displayBanner('No headline was detected. Make sure the title is on the first line.', 'warn'); return; }
+              showHighlightsFor(null, 'sig-title', { ranges: [{ index: Math.max(0, titleStartIndex), length: titleText.length }] });
             });
           };
           wireBtns();
